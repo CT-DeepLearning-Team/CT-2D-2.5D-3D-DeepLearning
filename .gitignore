@@ -216,3 +216,24 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+# Dataset files
+data/raw/
+data/processed/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environments
+venv/
+env/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Model weights
+*.pth
+*.pt
+
+# Results generated during experiments
+results/
