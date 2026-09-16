@@ -57,3 +57,68 @@ This ensures a fair comparison between different levels of spatial information.
 
 
 ## Project Structure
+CT-2D-2.5D-3D-DeepLearning/
+
+├── data/
+│ ├── raw/
+│ └── processed/
+│
+├── src/
+│ ├── common/
+│ ├── 2d/
+│ ├── 2p5d/
+│ └── 3d/
+│
+├── models/
+│
+├── results/
+│
+├── figures/
+│
+├── papers/
+│
+└── README.md
+
+
+
+## Team Members
+
+| Member | Responsibility |
+|---|---|
+| Bahodir | 2D CNN baseline |
+| Fatima | 2.5D multi-slice model |
+| Zaineb | 3D volumetric model, preprocessing pipeline and integration |
+
+
+## Evaluation Metrics
+
+Models will be compared using:
+
+- ROC-AUC
+- Accuracy
+- Balanced Accuracy
+- Precision
+- Recall / Sensitivity
+- Specificity
+- F1-score
+
+Additionally, computational requirements will be analyzed:
+
+- Number of parameters
+- Training time
+- Inference time
+- GPU memory usage
+
+
+## Goal
+
+The objective is not only to find the highest-performing model, but to understand:
+
+- How much spatial context is needed?
+- When does 2.5D provide advantages over 2D?
+- Does full 3D processing justify its computational cost?
+
+
+## Status
+
+🚧 Project under development
