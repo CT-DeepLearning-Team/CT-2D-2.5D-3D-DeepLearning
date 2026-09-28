@@ -1,18 +1,19 @@
-torch
-torchvision
-torchaudio
+# Pinned for reproducibility -- results in results/*/REPORT.md were produced
+# with exactly these versions (Python 3.13, macOS arm64, PyTorch MPS backend).
+# Install:  python -m venv .venv && .venv/bin/pip install -r requirements.txt
+matplotlib==3.11.2
+numpy==2.5.3
+pandas==3.0.6
+pillow==12.3.0
+scikit-learn==1.9.1
+scipy==1.18.1
+seaborn==0.13.2
+torch==2.14.0
+torchvision==0.29.0
+tqdm==4.70.1
 
-monai
-
-numpy
-pandas
-scikit-learn
-
-matplotlib
-seaborn
-
-SimpleITK
-pydicom
-
-jupyter
-tqdm
+# Only needed if re-deriving nodules from raw LIDC-IDRI DICOM (not required to
+# reproduce our results -- the built dataset is already provided):
+# pylidc
+# SimpleITK
+# pydicom

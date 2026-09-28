@@ -237,3 +237,9 @@ env/
 
 # Results generated during experiments
 results/
+
+# --- project specific ---
+.venv/
+data/cache/
+results/**/*.pt
+results/**/*.npy

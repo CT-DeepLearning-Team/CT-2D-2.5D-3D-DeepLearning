@@ -43,7 +43,10 @@ The dataset contains thoracic CT scans with pulmonary nodule annotations and mal
 
 The task is defined as:
 
-Pulmonary nodule malignancy-risk classification.
+Pulmonary nodule malignancy-risk classification, as a **three-class** problem
+(benign / indeterminate / malignant), because the LIDC-IDRI radiologist
+assessments include genuinely uncertain cases and forcing a binary split would
+discard them. See the label rule in the README.
 
 It is not intended as clinical cancer diagnosis.
 
@@ -91,6 +94,20 @@ Responsibilities:
 - Integrate results from all approaches
 - Lead final comparison
 
+
+## 5b. Two experiments per approach
+
+Each member runs both:
+
+- **Model A** — random initialisation, supervised training on the labelled
+  training nodules.
+- **Model B** — MoCo v2 self-supervised pretraining on training-patient nodules
+  only (no labels), then fine-tuning on the same labelled cohort as Model A.
+
+Both are needed: without Model A we cannot tell whether self-supervised
+pretraining helped. The SSL method is frozen team-wide as MoCo v2 so that
+Model B stays comparable across 2D, 2.5D and 3D. Test-patient images must not
+enter self-supervised pretraining either.
 
 ## 6. Evaluation
 

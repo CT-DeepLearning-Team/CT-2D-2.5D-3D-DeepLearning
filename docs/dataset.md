@@ -83,15 +83,36 @@ All team members will use the same processed dataset.
 
 Only the input representation changes:
 
-| Approach | Input Representation |
-|---|---|
-| 2D | Single slice |
-| 2.5D | Multiple slices |
-| 3D | Full volume |
+| Approach | Input Representation | Index into the (104, 72, 80) crop |
+|---|---|---|
+| 2D | Single central slice | `vol[52]` |
+| 2.5D | 5 neighbouring slices | `vol[50:55]` |
+| 3D | Full volume | `vol` |
+
+The nodule is already at the geometric centre of every crop (measured mask
+centre-of-mass: z 51.1–52.1, y 35.2–35.7, x 39.3–39.9), so slice 52 is the
+defined central slice and no per-nodule recentring is required.
 
 
 ## 8. Dataset Preparation Status
 
-Current status:
+**Complete.** The built dataset is `final_team_dataset_v2_3class`
+(see `docs/preprocessing_contract.md` for how to consume it).
 
-🚧 Dataset preparation not started.
+| | |
+|---|---|
+| Consensus nodules | 7385 (2672 rated, 4713 unrated) |
+| Technical QC exclusions | 27 (23 suspicious cluster, 4 incomplete crop coverage) |
+| Supervised cohort | 2654 — 873 benign / 1226 indeterminate / 555 malignant |
+| Train / val / test (nodules) | 1876 / 382 / 396 |
+| Train / val / test (patients) | 602 / 134 / 134 |
+| SSL pretraining pool | 5133 nodules from 692 train-split patients |
+| Arrays | `(104, 72, 80)` float32, 1 mm isotropic, raw HU |
+
+Verified independently: 7385 samples and 7385 masks with matching IDs, constant
+array shape, zero patient overlap and zero nodule overlap between splits, and no
+validation or test patient in the SSL pool.
+
+The task is **three-class**, not binary — see the label policy in the README.
+A binary subset is available for sensitivity analysis: `binary_eligible` marks
+370 nodules (273 benign / 97 malignant), and `strict_3_reader_eligible` marks 220.
