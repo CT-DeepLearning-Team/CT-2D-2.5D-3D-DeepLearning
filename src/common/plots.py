@@ -34,16 +34,18 @@ def training_curves(history: dict, out: Path, title: str) -> None:
     plt.close(fig)
 
 
-def confusion_figure(cm: list[list[int]], out: Path, title: str) -> None:
+def confusion_figure(cm: list[list[int]], out: Path, title: str,
+                     class_names: tuple[str, ...] = C.CLASS_NAMES) -> None:
     cm = np.asarray(cm)
+    k = len(class_names)
     norm = cm / np.maximum(cm.sum(1, keepdims=True), 1)
     fig, ax = plt.subplots(figsize=(5.2, 4.6))
     im = ax.imshow(norm, cmap="Blues", vmin=0, vmax=1)
-    ax.set_xticks(range(C.NUM_CLASSES), C.CLASS_NAMES, rotation=30, ha="right")
-    ax.set_yticks(range(C.NUM_CLASSES), C.CLASS_NAMES)
+    ax.set_xticks(range(k), class_names, rotation=30, ha="right")
+    ax.set_yticks(range(k), class_names)
     ax.set_xlabel("predicted"); ax.set_ylabel("true")
-    for i in range(C.NUM_CLASSES):
-        for j in range(C.NUM_CLASSES):
+    for i in range(k):
+        for j in range(k):
             ax.text(j, i, f"{cm[i, j]}\n{norm[i, j]:.0%}", ha="center", va="center",
                     color="white" if norm[i, j] > .5 else "black", fontsize=9)
     ax.set_title(title)

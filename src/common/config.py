@@ -30,6 +30,19 @@ SPLIT_CSV = {
 }
 SSL_CSV = METADATA / "ssl_pretrain_train.csv"
 
+# Binary sensitivity experiment. Zaineb's package; override with CT_BINARY_ROOT.
+BINARY_ROOT = Path(
+    os.environ.get(
+        "CT_BINARY_ROOT",
+        Path.home() / "Documents" / "binary_sensitivity_team_package",
+    )
+).expanduser()
+BINARY_CSV = {
+    "train": BINARY_ROOT / "binary_train.csv",
+    "val": BINARY_ROOT / "binary_validation.csv",
+    "test": BINARY_ROOT / "binary_test.csv",
+}
+
 # ------------------------------------------------------------------- geometry
 # Every stored crop is (104, 72, 80) at 1 mm isotropic spacing, and the nodule
 # is centred: mask centre-of-mass measured over 25 random samples was
@@ -50,6 +63,23 @@ HU_MIN, HU_MAX = -1000.0, 400.0
 NUM_CLASSES = 3
 CLASS_NAMES = ("benign", "indeterminate", "malignant")  # class_index_v2 0,1,2
 LABEL_COL = "class_index_v2"
+
+# --- binary sensitivity experiment -------------------------------------------
+# Use `binary_class_index` (0 = benign, 1 = malignant), NOT the legacy
+# `binary_label` column that also exists in these CSVs: that one is inherited
+# from the V2 metadata and is empty for 73% of rows (731/1000 in train), so
+# reading it would silently corrupt the labels.
+BINARY_NUM_CLASSES = 2
+BINARY_CLASS_NAMES = ("benign", "malignant")
+BINARY_LABEL_COL = "binary_class_index"
+
+TASKS = {
+    "3class": {"num_classes": NUM_CLASSES, "class_names": CLASS_NAMES,
+               "label_col": LABEL_COL, "csv": SPLIT_CSV},
+    "binary": {"num_classes": BINARY_NUM_CLASSES,
+               "class_names": BINARY_CLASS_NAMES,
+               "label_col": BINARY_LABEL_COL, "csv": BINARY_CSV},
+}
 ID_COL = "consensus_nodule_id"
 PATIENT_COL = "patient_id"
 PATH_COL = "sample_path"

@@ -12,20 +12,51 @@ from src.common.transforms import augment_moco, augment_supervised, window_hu
 
 
 # ------------------------------------------------------------------ manifests
-def load_splits() -> dict[str, pd.DataFrame]:
+def load_splits(task: str = "3class") -> dict[str, pd.DataFrame]:
+    """Load the frozen split CSVs for a task, exactly as provided.
+
+    task="3class" -> supervised_{train,validation,test}.csv, label class_index_v2
+    task="binary" -> binary_{train,validation,test}.csv,     label binary_class_index
+    """
+    spec = C.TASKS[task]
     out = {}
-    for name, path in C.SPLIT_CSV.items():
+    for name, path in spec["csv"].items():
         df = pd.read_csv(path, low_memory=False)
-        df[C.LABEL_COL] = df[C.LABEL_COL].astype(int)
+        col = spec["label_col"]
+        if df[col].isna().any():
+            raise AssertionError(
+                f"{path.name}: column '{col}' has {int(df[col].isna().sum())} "
+                "empty values -- wrong label column?")
+        df[col] = df[col].astype(int)
+        bad = set(df[col].unique()) - set(range(spec["num_classes"]))
+        if bad:
+            raise AssertionError(f"{path.name}: unexpected labels {bad}")
         out[name] = df
     return out
+
+
+def verify_binary_counts(splits: dict[str, pd.DataFrame]) -> None:
+    """Check the binary cohort against the counts Zaineb specified."""
+    expected = {"train": (1000, 622, 378), "val": (219, 134, 85),
+                "test": (209, 117, 92)}
+    for name, (tot, n0, n1) in expected.items():
+        d = splits[name]
+        c = d[C.BINARY_LABEL_COL].value_counts()
+        got = (len(d), int(c.get(0, 0)), int(c.get(1, 0)))
+        if got != (tot, n0, n1):
+            raise AssertionError(
+                f"binary {name}: expected total/benign/malignant {(tot, n0, n1)}, "
+                f"got {got}")
+    print("binary counts match the agreed specification "
+          "(1000/219/209; 622+378, 134+85, 117+92)")
 
 
 def load_ssl_pool() -> pd.DataFrame:
     return pd.read_csv(C.SSL_CSV, low_memory=False)
 
 
-def assert_no_leakage(splits: dict[str, pd.DataFrame], ssl: pd.DataFrame | None = None):
+def assert_no_leakage(splits: dict[str, pd.DataFrame], ssl: pd.DataFrame | None = None,
+                      reference: dict[str, pd.DataFrame] | None = None):
     """Hard guard: the protocol's central promise, re-checked on every run.
 
     Raises rather than warns -- a silent leak invalidates every number we report.
@@ -48,14 +79,27 @@ def assert_no_leakage(splits: dict[str, pd.DataFrame], ssl: pd.DataFrame | None 
                     f"SSL pool contains {len(bad)} {held} patients -- "
                     "pretraining would contaminate the held-out evaluation"
                 )
+    if reference is not None:
+        # Every split must be a SUBSET of the corresponding reference split:
+        # proves no patient was moved between splits when deriving the cohort.
+        for name in splits:
+            sub = set(splits[name][C.PATIENT_COL])
+            ref = set(reference[name][C.PATIENT_COL])
+            if not sub <= ref:
+                raise AssertionError(
+                    f"{name}: {len(sub - ref)} patients are not in the original "
+                    f"{name} split -- the split was changed, not just filtered")
     return True
 
 
-def class_weights(train: pd.DataFrame) -> torch.Tensor:
-    """Inverse-frequency weights, N / (K * n_k). Counters the 46% majority
-    'indeterminate' class so the model cannot coast by predicting it."""
-    counts = train[C.LABEL_COL].value_counts().reindex(range(C.NUM_CLASSES)).values
-    w = counts.sum() / (C.NUM_CLASSES * counts)
+def class_weights(train: pd.DataFrame, task: str = "3class") -> torch.Tensor:
+    """Inverse-frequency weights, N / (K * n_k), so the model cannot coast by
+    predicting the majority class (indeterminate is 47% of the 3-class train
+    split; benign is 62% of the binary one)."""
+    spec = C.TASKS[task]
+    k = spec["num_classes"]
+    counts = train[spec["label_col"]].value_counts().reindex(range(k)).values
+    w = counts.sum() / (k * counts)
     return torch.tensor(w, dtype=torch.float32)
 
 
@@ -68,11 +112,12 @@ class CentralSliceDataset(Dataset):
     """
 
     def __init__(self, df: pd.DataFrame, mean: float, std: float,
-                 train: bool = False, seed: int = 0, aug: str = "mild"):
+                 train: bool = False, seed: int = 0, aug: str = "mild",
+                 task: str = "3class"):
         arr, index = cache_mod.load()
         self.arr = arr
         self.rows = np.array([index[i] for i in df[C.ID_COL]], dtype=np.int64)
-        self.labels = df[C.LABEL_COL].to_numpy(dtype=np.int64)
+        self.labels = df[C.TASKS[task]["label_col"]].to_numpy(dtype=np.int64)
         self.ids = df[C.ID_COL].tolist()
         self.mean, self.std, self.train = mean, std, train
         self.aug = aug

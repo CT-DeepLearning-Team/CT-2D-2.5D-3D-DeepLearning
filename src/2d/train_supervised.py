@@ -26,7 +26,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.common import config as C
 from src.common.data import (CentralSliceDataset, assert_no_leakage, class_weights,
-                             load_splits, load_ssl_pool, train_statistics)
+                             load_splits, load_ssl_pool, train_statistics,
+                             verify_binary_counts)
 from src.common.metrics import bootstrap_ci, compute_all, format_report
 from src.common.plots import confusion_figure, training_curves
 from src.common.seed import device, set_seed
@@ -36,7 +37,8 @@ from model import ResNet18Classifier, n_params  # noqa: E402
 
 
 @torch.no_grad()
-def evaluate(model, loader, dev, criterion) -> tuple[dict, float, np.ndarray, np.ndarray]:
+def evaluate(model, loader, dev, criterion,
+             class_names=C.CLASS_NAMES) -> tuple[dict, float, np.ndarray, np.ndarray]:
     model.eval()
     probs, targets, loss_sum, n = [], [], 0.0, 0
     for x, y in loader:
@@ -49,11 +51,13 @@ def evaluate(model, loader, dev, criterion) -> tuple[dict, float, np.ndarray, np
     y_prob = np.concatenate(probs)
     y_true = np.concatenate(targets)
     y_pred = y_prob.argmax(1)
-    return compute_all(y_true, y_pred, y_prob), loss_sum / n, y_true, y_prob
+    return (compute_all(y_true, y_pred, y_prob, class_names),
+            loss_sum / n, y_true, y_prob)
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
+    ap.add_argument("--task", choices=["3class", "binary"], default="3class")
     ap.add_argument("--init", choices=["random", "moco"], default="random")
     ap.add_argument("--moco-ckpt", type=str, default="")
     ap.add_argument("--seed", type=int, default=0)
@@ -73,26 +77,38 @@ def main() -> None:
                          "protocol is frozen.")
     args = ap.parse_args()
 
-    tag = args.tag or ("model_a" if args.init == "random" else "model_b")
+    spec = C.TASKS[args.task]
+    num_classes, class_names = spec["num_classes"], spec["class_names"]
+    default_tag = ("model_a" if args.init == "random" else "model_b")
+    if args.task == "binary":
+        default_tag = "binary_supervised"
+    tag = args.tag or default_tag
     out = C.RESULTS_DIR / "2d" / tag / f"seed{args.seed}"
     out.mkdir(parents=True, exist_ok=True)
 
     set_seed(args.seed)
     dev = device()
 
-    splits = load_splits()
-    assert_no_leakage(splits, load_ssl_pool())
+    splits = load_splits(args.task)
+    reference = load_splits("3class") if args.task == "binary" else None
+    if args.task == "binary":
+        verify_binary_counts(splits)
+    assert_no_leakage(splits, load_ssl_pool(), reference=reference)
+    print(f"task {args.task} ({num_classes} classes: {', '.join(class_names)})")
     print(f"leakage check passed | train {len(splits['train'])} "
           f"val {len(splits['val'])} test {len(splits['test'])}")
 
-    mean, std = train_statistics(splits["train"])
+    # Intensity statistics always come from the 3-class TRAIN split so that the
+    # binary and 3-class models see identically scaled inputs.
+    mean, std = train_statistics(load_splits("3class")["train"])
     print(f"train-set windowed intensity: mean {mean:.4f} std {std:.4f}")
 
     ds = {
         "train": CentralSliceDataset(splits["train"], mean, std, train=True,
-                                     seed=args.seed, aug=args.aug),
-        "val": CentralSliceDataset(splits["val"], mean, std),
-        "test": CentralSliceDataset(splits["test"], mean, std),
+                                     seed=args.seed, aug=args.aug,
+                                     task=args.task),
+        "val": CentralSliceDataset(splits["val"], mean, std, task=args.task),
+        "test": CentralSliceDataset(splits["test"], mean, std, task=args.task),
     }
     dl = {
         "train": DataLoader(ds["train"], batch_size=args.batch_size, shuffle=True,
@@ -102,7 +118,8 @@ def main() -> None:
         "test": DataLoader(ds["test"], batch_size=128, num_workers=0),
     }
 
-    model = ResNet18Classifier(in_channels=1, dropout=args.dropout).to(dev)
+    model = ResNet18Classifier(in_channels=1, num_classes=num_classes,
+                               dropout=args.dropout).to(dev)
     if args.init == "moco":
         if not args.moco_ckpt:
             raise SystemExit("--init moco requires --moco-ckpt")
@@ -112,7 +129,7 @@ def main() -> None:
               f"(missing {len(miss)}, unexpected {len(unexp)})")
     print(f"trainable params {n_params(model)/1e6:.2f}M | device {dev}")
 
-    w = class_weights(splits["train"]).to(dev)
+    w = class_weights(splits["train"], args.task).to(dev)
     print(f"class weights {w.cpu().numpy().round(3)}")
     criterion = nn.CrossEntropyLoss(weight=w, label_smoothing=args.label_smoothing)
     opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.wd)
@@ -142,7 +159,7 @@ def main() -> None:
 
         tr_f1 = f1_score(np.concatenate(tr_true), np.concatenate(tr_pred),
                          average="macro", zero_division=0)
-        vm, vl, _, _ = evaluate(model, dl["val"], dev, criterion)
+        vm, vl, _, _ = evaluate(model, dl["val"], dev, criterion, class_names)
 
         hist["epoch"].append(ep)
         hist["train_loss"].append(loss_sum / n)
@@ -172,17 +189,19 @@ def main() -> None:
 
     # ---- final test evaluation, best checkpoint only, once -------------------
     model.load_state_dict(torch.load(out / "best.pt", map_location=dev))
-    val_m, _, _, _ = evaluate(model, dl["val"], dev, criterion)
+    val_m, _, _, _ = evaluate(model, dl["val"], dev, criterion, class_names)
     test_m = None
     if args.eval_test:
-        test_m, _, y_true, y_prob = evaluate(model, dl["test"], dev, criterion)
+        test_m, _, y_true, y_prob = evaluate(model, dl["test"], dev, criterion,
+                                             class_names)
         lo, hi = bootstrap_ci(y_true, y_prob.argmax(1), "macro_f1", seed=args.seed)
         test_m["macro_f1_ci95"] = [lo, hi]
         np.save(out / "test_probabilities.npy", y_prob)
         np.save(out / "test_targets.npy", y_true)
 
     result = {
-        "tag": tag, "init": args.init, "seed": args.seed,
+        "tag": tag, "task": args.task, "num_classes": num_classes,
+        "class_names": list(class_names), "init": args.init, "seed": args.seed,
         "epochs_run": len(hist["epoch"]), "best_epoch": best_epoch,
         "best_val_macro_f1": best_f1, "train_minutes": mins,
         "params": n_params(model),
@@ -194,12 +213,14 @@ def main() -> None:
     training_curves(hist, out / "curves.png",
                     f"2D {tag} (seed {args.seed}) -- ResNet-18, central slice")
     print()
-    print(format_report(f"2D {tag} seed {args.seed} -- VALIDATION", val_m))
+    print(format_report(f"2D {tag} seed {args.seed} -- VALIDATION", val_m,
+                        class_names))
     if test_m is not None:
         confusion_figure(test_m["confusion_matrix"], out / "confusion_test.png",
-                         f"2D {tag} seed {args.seed} -- test")
+                         f"2D {tag} seed {args.seed} -- test", class_names)
         print()
-        print(format_report(f"2D {tag} seed {args.seed} -- TEST", test_m))
+        print(format_report(f"2D {tag} seed {args.seed} -- TEST", test_m,
+                            class_names))
         print(f"  macro F1 95% CI    [{test_m['macro_f1_ci95'][0]:.4f}, "
               f"{test_m['macro_f1_ci95'][1]:.4f}]")
     print(f"\nsaved -> {out}")
