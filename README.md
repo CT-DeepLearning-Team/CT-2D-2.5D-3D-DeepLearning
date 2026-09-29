@@ -7,183 +7,118 @@ Computed Tomography (CT) is a three-dimensional imaging modality composed of con
 
 This project investigates how the amount of spatial context provided to deep learning models affects pulmonary nodule malignancy-risk classification.
 
-We compare three approaches, all on identical data, labels, splits and metrics:
+We compare three approaches:
 
-| Approach | Input | Encoder | Member |
-|---|---|---|---|
-| **2D** | single central slice `(1, 72, 80)` | ResNet-18 | Bahodir |
-| **2.5D** | 5 neighbouring slices `(5, 72, 80)` | ResNet-18 | Fatima |
-| **3D** | full crop `(104, 72, 80)` | 3D ResNet-10 | Zaineb |
+- **2D Deep Learning**
+  - Uses a single CT slice.
+  - Implemented by Bahodir.
 
-The encoders differ **only** in input channels / dimensionality, so a performance
-gap is attributable to spatial context rather than architecture.
+- **2.5D Multi-Slice Deep Learning**
+  - Uses multiple neighboring CT slices.
+  - Implemented by Fatima.
+
+- **3D Volumetric Deep Learning**
+  - Uses complete 3D CT volumes.
+  - Implemented by Zaineb.
+
 
 ## Research Question
 
 **How does the amount of spatial context available to a deep learning model affect pulmonary nodule malignancy-risk classification from CT scans?**
 
-And, second: **does self-supervised pretraining improve each approach?**
+The project studies whether additional three-dimensional information improves classification performance and whether the improvement justifies the additional computational cost.
 
-## Task: three classes
-
-The task is **pulmonary nodule malignancy-risk classification**, not clinical
-cancer diagnosis. LIDC-IDRI radiologist assessments include genuinely uncertain
-cases, so we do not force a binary split. The project label rule
-(`docs/label_policy_v2.md`) is:
-
-| Median of reader scores | Class | `class_index_v2` |
-|---|---|---|
-| 1.0 – 2.0 | benign | 0 |
-| 2.5 – 3.0 | indeterminate | 1 |
-| 3.5 – 5.0 | malignant | 2 |
-
-Original LIDC ratings are integers 1–5; medians of 2.5 and 3.5 arise from reader
-disagreement and are **not** original radiologist categories. Original reader
-scores, medians, reader counts and disagreement flags are preserved in the
-metadata for sensitivity analyses (`midpoint_median_v2` flags 449 such nodules).
 
 ## Dataset
 
-`final_team_dataset_v2_3class`, derived from **LIDC-IDRI**.
+The project uses the:
 
-| | |
-|---|---|
-| Consensus nodules | 7385 (2672 rated, 4713 unrated) |
-| Supervised cohort | **2654** — 873 benign / 1226 indeterminate / 555 malignant |
-| Train / val / test (nodules) | 1876 / 382 / 396 |
-| Train / val / test (patients) | 602 / 134 / 134 |
-| SSL pretraining pool | 5133 nodules, train patients only |
-| Arrays | `(104, 72, 80)` float32, 1 mm isotropic, **raw HU** |
+**LIDC-IDRI (Lung Image Database Consortium and Image Database Resource Initiative)**
 
-Patient-level splits, verified to have zero patient and zero nodule overlap, and
-an SSL pool containing no validation or test patients.
+The dataset contains thoracic CT scans with pulmonary nodule annotations and radiologist malignancy assessments.
 
-Set the dataset location once:
+The task is defined as:
 
-```bash
-export CT_DATA_ROOT=~/Documents/final_team_dataset_v2_3class
-```
+**Pulmonary nodule malignancy-risk classification**
 
-## Two experiments per approach
+not clinical cancer diagnosis.
 
-- **Model A** — random initialisation → supervised 3-class training.
-- **Model B** — **MoCo v2** self-supervised pretraining on `ssl_pretrain_train.csv`
-  (no labels, train patients only) → fine-tuning on the same labelled cohort as A.
 
-Model B uses an identical fine-tuning recipe to Model A, so the A→B difference
-measures pretraining alone. The SSL method is frozen team-wide as MoCo v2.
+## Experimental Design
+
+All three models use:
+
+- The same CT nodules
+- The same patient-level train/validation/test split
+- The same evaluation protocol
+- The same classification objective
+
+This ensures a fair comparison between different levels of spatial information.
+
 
 ## Project Structure
-
-```
 CT-2D-2.5D-3D-DeepLearning/
-├── data/cache/                 # generated central-slice cache (gitignored)
-├── docs/
-│   ├── preprocessing_contract.md   # <- shared rules: READ THIS FIRST
-│   ├── project_proposal.md
-│   ├── dataset.md
-│   └── experimental_protocol.md
-├── scripts/
-│   ├── build_cache.py
-│   ├── sweep_2d.sh
-│   └── aggregate_2d.py
+
+├── data/
+│ ├── raw/
+│ └── processed/
+│
 ├── src/
-│   ├── common/     # config, data, transforms, metrics, plots, seeding
-│   ├── 2d/         # model, moco_pretrain, train_supervised
-│   ├── 2p5d/
-│   └── 3d/
-└── results/2d/REPORT.md
-```
+│ ├── common/
+│ ├── 2d/
+│ ├── 2p5d/
+│ └── 3d/
+│
+├── models/
+│
+├── results/
+│
+├── figures/
+│
+├── papers/
+│
+└── README.md
+
+
+
+## Team Members
+
+| Member | Responsibility |
+|---|---|
+| Bahodir | 2D CNN baseline |
+| Fatima | 2.5D multi-slice model |
+| Zaineb | 3D volumetric model, preprocessing pipeline and integration |
+
 
 ## Evaluation Metrics
 
-Identical for all three approaches (`src/common/metrics.py`):
+Models will be compared using:
 
-- Accuracy, Balanced Accuracy
-- Macro Precision / Recall / **F1** (macro-F1 is the primary selection metric)
-- Per-class Precision / Recall / F1
-- Confusion matrix
-- Multiclass ROC-AUC (one-vs-rest, macro and weighted)
-- Training vs validation curves, as overfitting evidence
+- ROC-AUC
+- Accuracy
+- Balanced Accuracy
+- Precision
+- Recall / Sensitivity
+- Specificity
+- F1-score
 
-Plus computational cost: parameters, training time, inference time, memory.
+Additionally, computational requirements will be analyzed:
 
-Because the test split is only 396 nodules, headline numbers are reported as
-**mean ± std over 3 seeds** with **bootstrap 95% CIs**. Differences smaller than
-those intervals should not be interpreted as real.
+- Number of parameters
+- Training time
+- Inference time
+- GPU memory usage
 
-**Reference baseline:** always predicting *indeterminate* gives test macro-F1
-≈ 0.21 and accuracy ≈ 0.47. Accuracy near 0.50 is therefore only marginally
-above the majority rate, while macro-F1 near 0.50 is a genuine result.
 
-## Reproducing the 2D track
+## Goal
 
-```bash
-python -m venv .venv && .venv/bin/pip install -r requirements.txt
-export CT_DATA_ROOT=~/Documents/final_team_dataset_v2_3class
-.venv/bin/python scripts/build_cache.py                  # ~170 MB slice cache
+The objective is not only to find the highest-performing model, but to understand:
 
-# Model A (3 seeds)
-for s in 0 1 2; do .venv/bin/python src/2d/train_supervised.py \
-    --init random --seed $s --eval-test; done
+- How much spatial context is needed?
+- When does 2.5D provide advantages over 2D?
+- Does full 3D processing justify its computational cost?
 
-# Model B: MoCo v2 pretraining, then fine-tune (3 seeds)
-.venv/bin/python src/2d/moco_pretrain.py                 # ~57 min
-for s in 0 1 2; do .venv/bin/python src/2d/train_supervised.py \
-    --init moco --moco-ckpt results/2d/moco/moco_encoder.pt \
-    --seed $s --eval-test; done
-
-# Binary sensitivity analysis (supervised only)
-export CT_BINARY_ROOT=~/Documents/binary_sensitivity_team_package
-for s in 0 1 2; do .venv/bin/python src/2d/train_supervised.py \
-    --task binary --seed $s --eval-test; done
-
-.venv/bin/python scripts/aggregate_2d.py                 # -> results/2d/REPORT.md
-.venv/bin/python scripts/benchmark_2d.py                 # parameters, latency, memory
-```
-
-## Team rule
-
-Do not independently change labels, patient splits, class definitions,
-evaluation metrics, or the general training strategy. Shared preprocessing lives
-in `src/common/` and is documented in `docs/preprocessing_contract.md` — import
-it rather than reimplementing, and discuss changes before making them.
-
-## Three deliverables per member
-
-1. 3-class supervised baseline (Model A)
-2. 3-class MoCo v2 pretraining + fine-tuning (Model B)
-3. Binary supervised sensitivity analysis (indeterminate excluded)
-
-The binary experiment is supervised only. It uses Zaineb's fixed
-`binary_{train,validation,test}.csv` (1000 / 219 / 209 nodules), which are
-strict subsets of the original splits — no resplitting. **Use the
-`binary_class_index` column**, not the legacy `binary_label` column, which is
-empty for 73% of rows.
-
-## 2D results (Bahodir) — complete
-
-Test metrics, mean ± std over seeds 0/1/2. Full detail in
-[results/2d/REPORT.md](results/2d/REPORT.md); written analysis in
-[results/2d/ANALYSIS.md](results/2d/ANALYSIS.md).
-
-| model | macro F1 | accuracy | balanced acc | ROC-AUC |
-|---|---|---|---|---|
-| 3-class supervised (A) | 0.5908 ± 0.0241 | 0.5850 | 0.5920 | 0.7511 |
-| 3-class MoCo v2 (B) | 0.5803 ± 0.0261 | 0.5732 | 0.5774 | 0.7515 |
-| **binary supervised** | **0.8323 ± 0.0218** | 0.8357 | 0.8304 | 0.8790 |
-
-Key findings: MoCo pretraining had **no measurable effect** in 2D (−0.011 macro-F1,
-inside the seed spread and the bootstrap CIs); *malignant* was the easiest class
-and *benign* the hardest; and removing *indeterminate* raised macro-F1 by 24
-points on the same images, so the indeterminate category is the dominant source
-of difficulty rather than the imaging or the architecture.
 
 ## Status
 
-- [x] Dataset built, validated, splits verified leakage-free
-- [x] Shared preprocessing / metrics / plotting (`src/common/`)
-- [x] **2D — Model A, Model B and binary all complete (Bahodir)**
-- [ ] 2.5D — Model A, Model B, binary (Fatima)
-- [ ] 3D — Model A done; Model B and binary (Zaineb)
-- [ ] Final comparison and paper
+🚧 Project under development
