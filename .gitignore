@@ -235,11 +235,12 @@ env/
 *.pth
 *.pt
 
-# Results generated during experiments
-results/
-
 # --- project specific ---
 .venv/
 data/cache/
+
+# Results: keep the reports, metrics and figures in the repo so the team can
+# read each other's numbers; exclude only the large artefacts (checkpoints and
+# saved probability arrays), which are reproducible from the code.
 results/**/*.pt
 results/**/*.npy

@@ -128,12 +128,18 @@ for s in 0 1 2; do .venv/bin/python src/2d/train_supervised.py \
     --init random --seed $s --eval-test; done
 
 # Model B: MoCo v2 pretraining, then fine-tune (3 seeds)
-.venv/bin/python src/2d/moco_pretrain.py
+.venv/bin/python src/2d/moco_pretrain.py                 # ~57 min
 for s in 0 1 2; do .venv/bin/python src/2d/train_supervised.py \
     --init moco --moco-ckpt results/2d/moco/moco_encoder.pt \
     --seed $s --eval-test; done
 
+# Binary sensitivity analysis (supervised only)
+export CT_BINARY_ROOT=~/Documents/binary_sensitivity_team_package
+for s in 0 1 2; do .venv/bin/python src/2d/train_supervised.py \
+    --task binary --seed $s --eval-test; done
+
 .venv/bin/python scripts/aggregate_2d.py                 # -> results/2d/REPORT.md
+.venv/bin/python scripts/benchmark_2d.py                 # parameters, latency, memory
 ```
 
 ## Team rule
@@ -143,11 +149,41 @@ evaluation metrics, or the general training strategy. Shared preprocessing lives
 in `src/common/` and is documented in `docs/preprocessing_contract.md` — import
 it rather than reimplementing, and discuss changes before making them.
 
+## Three deliverables per member
+
+1. 3-class supervised baseline (Model A)
+2. 3-class MoCo v2 pretraining + fine-tuning (Model B)
+3. Binary supervised sensitivity analysis (indeterminate excluded)
+
+The binary experiment is supervised only. It uses Zaineb's fixed
+`binary_{train,validation,test}.csv` (1000 / 219 / 209 nodules), which are
+strict subsets of the original splits — no resplitting. **Use the
+`binary_class_index` column**, not the legacy `binary_label` column, which is
+empty for 73% of rows.
+
+## 2D results (Bahodir) — complete
+
+Test metrics, mean ± std over seeds 0/1/2. Full detail in
+[results/2d/REPORT.md](results/2d/REPORT.md); written analysis in
+[results/2d/ANALYSIS.md](results/2d/ANALYSIS.md).
+
+| model | macro F1 | accuracy | balanced acc | ROC-AUC |
+|---|---|---|---|---|
+| 3-class supervised (A) | 0.5908 ± 0.0241 | 0.5850 | 0.5920 | 0.7511 |
+| 3-class MoCo v2 (B) | 0.5803 ± 0.0261 | 0.5732 | 0.5774 | 0.7515 |
+| **binary supervised** | **0.8323 ± 0.0218** | 0.8357 | 0.8304 | 0.8790 |
+
+Key findings: MoCo pretraining had **no measurable effect** in 2D (−0.011 macro-F1,
+inside the seed spread and the bootstrap CIs); *malignant* was the easiest class
+and *benign* the hardest; and removing *indeterminate* raised macro-F1 by 24
+points on the same images, so the indeterminate category is the dominant source
+of difficulty rather than the imaging or the architecture.
+
 ## Status
 
 - [x] Dataset built, validated, splits verified leakage-free
 - [x] Shared preprocessing / metrics / plotting (`src/common/`)
-- [x] 2D — Model A and Model B (Bahodir)
-- [ ] 2.5D — Model A and Model B (Fatima)
-- [x] 3D — Model A done, Model B in progress (Zaineb)
+- [x] **2D — Model A, Model B and binary all complete (Bahodir)**
+- [ ] 2.5D — Model A, Model B, binary (Fatima)
+- [ ] 3D — Model A done; Model B and binary (Zaineb)
 - [ ] Final comparison and paper

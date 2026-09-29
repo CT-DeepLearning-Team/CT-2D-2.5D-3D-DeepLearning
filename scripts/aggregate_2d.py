@@ -262,8 +262,14 @@ def main() -> None:
               "0.21 for the majority baseline). The per-class F1 for benign and "
               "malignant, and the ROC-AUC, are the fairer comparison.", ""]
 
-    L += ["## Files", "",
+    L += ["## Analysis and conclusion", "",
+          "See **`results/2d/ANALYSIS.md`** for the written analysis requested in "
+          "`README_TEAM_EXPERIMENTS.txt`: supervised vs MoCo, whether SSL helped, "
+          "easiest/hardest class, what the confusion matrix shows, overfitting, "
+          "validation-to-test agreement, 3-class vs binary, and limitations.", "",
+          "## Files", "",
           "- `results/2d/REPORT.md` — this report",
+          "- `results/2d/ANALYSIS.md` — written analysis and conclusion",
           "- `results/2d/summary.json` — machine-readable numbers",
           "- `results/2d/<tag>/seed<N>/result.json` — per-seed metrics and history",
           "- `results/2d/<tag>/seed<N>/curves.png` — train vs validation curves",
