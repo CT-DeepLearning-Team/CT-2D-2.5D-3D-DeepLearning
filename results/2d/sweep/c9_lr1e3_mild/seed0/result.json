@@ -1,11 +1,18 @@
 {
   "tag": "sweep/c9_lr1e3_mild",
+  "task": "3class",
+  "num_classes": 3,
+  "class_names": [
+    "benign",
+    "indeterminate",
+    "malignant"
+  ],
   "init": "random",
   "seed": 0,
   "epochs_run": 25,
   "best_epoch": 13,
   "best_val_macro_f1": 0.6003265171457054,
-  "train_minutes": 3.0029088616371156,
+  "train_minutes": 1.4733766516049702,
   "params": 11171779,
   "hu_window": [
     -1000.0,
@@ -15,6 +22,7 @@
   "train_mean": 0.3651053309440613,
   "train_std": 0.31445884704589844,
   "args": {
+    "task": "3class",
     "init": "random",
     "moco_ckpt": "",
     "seed": 0,

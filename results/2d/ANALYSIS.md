@@ -112,6 +112,31 @@ validation-only sweep of 8 configurations showed these matter a lot — validati
 macro-F1 moved from 0.5478 (light regularisation, lr 3e-4) to 0.6093 (lr 1e-3
 with strong augmentation, weight decay 0.05, dropout 0.5).
 
+### Which regulariser actually mattered
+
+Ablations at the selected learning rate (1e-3), validation only, seed 0. Each
+row changes exactly one thing relative to the final configuration:
+
+| configuration | val macro F1 | Δ vs final |
+|---|---|---|
+| **final** (lr 1e-3, wd 0.05, dropout 0.5, strong aug, ls 0.10) | **0.6093** | — |
+| mild augmentation instead of strong | 0.6003 | −0.0090 |
+| weight decay 0.01 instead of 0.05 | 0.6055 | −0.0038 |
+| **no dropout** instead of 0.5 | 0.5850 | −0.0243 |
+| lr 3e-4 (with wd 0.05, dropout 0.5, mild aug) | 0.5654 | −0.0439 |
+| lr 1e-4, wd 0.1, dropout 0.5, strong aug | 0.5191 | −0.0902 |
+
+Two conclusions. **Learning rate dominated** — moving from 3e-4 to 1e-3 was worth
+more than every regulariser combined, and dropping to 1e-4 was catastrophic.
+Among the regularisers, **dropout contributed most** (−0.024 without it),
+followed by strong augmentation (−0.009), with weight decay the least sensitive
+(−0.004). Over-regularising hurt: weight decay 0.1 with lr 1e-4 gave the worst
+result in the whole sweep.
+
+A caveat: these deltas are single-seed and measured on 382 validation nodules,
+so only the dropout and learning-rate effects are clearly larger than run-to-run
+noise. The augmentation and weight-decay differences are suggestive, not proven.
+
 Notably the **binary model overfits much less** (gap +0.192 vs +0.386), despite
 having *fewer* training samples (1000 vs 1876). Removing the ambiguous class
 removes label noise, and label noise is what a high-capacity network memorises
