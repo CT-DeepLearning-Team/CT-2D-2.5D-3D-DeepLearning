@@ -239,3 +239,114 @@ the 3-class train-split mean/std (0.3651 / 0.3145), documented in
 `docs/preprocessing_contract.md`. If Fatima or Zaineb used a different window,
 our three results are not measuring spatial context alone and this must be
 reconciled before the final comparison table is built.
+
+---
+
+# Addendum — Model C, augmentation, and the binary ceiling
+
+Added at the team's request: a Model C with mild training-only augmentation, a
+binary run using the identical Model C recipe, and an investigation of why the
+binary model does not reach 90%.
+
+## Note on the experiment structure
+
+The team table lists the 3-class baseline and MoCo models as "no aug". My
+originally reported Model A and Model B used **strong** augmentation, so they
+were not no-augmentation baselines and the A-vs-C contrast would not have
+measured anything. I therefore re-ran both **without augmentation** so the
+comparison is valid, and kept the strong-augmentation runs as a third arm.
+All seven variants share one recipe (ResNet-18, lr 1e-3, AdamW wd 0.05, cosine,
+dropout 0.5, label smoothing 0.10, class weights, early stopping on validation
+macro-F1) and differ only in augmentation and task.
+
+## Does augmentation control overfitting? Not in 2D.
+
+| | no aug | **mild (Model C)** | strong |
+|---|---|---|---|
+| test macro F1 | 0.6059 ± 0.024 | **0.6134 ± 0.007** | 0.5908 ± 0.024 |
+| test accuracy | 0.6002 | 0.6128 | 0.5850 |
+| test balanced accuracy | 0.6061 | 0.6110 | 0.5920 |
+| test ROC-AUC | 0.7565 | 0.7595 | 0.7511 |
+| train−val gap at selected epoch | +0.386 | +0.394 | +0.386 |
+| train−val gap at last epoch | +0.418 | +0.422 | +0.456 |
+| peak training macro F1 | 1.000 | 1.000 | 0.999 |
+| epoch train macro F1 first exceeds 0.90 | 7 | 7–8 | 7–8 |
+
+**Mild augmentation is the best 2D model** — highest test macro-F1, accuracy,
+balanced accuracy and AUC. Its most valuable property is **stability**: seed
+standard deviation drops from ±0.024 to ±0.007.
+
+But it did **not** control overfitting in any meaningful sense. The
+train−validation gap is statistically unchanged (+0.394 vs +0.386), the network
+still memorises the training set completely (peak training macro-F1 = 1.000),
+and it still crosses 0.90 training macro-F1 at **epoch 7** with or without
+augmentation. Augmentation improved *generalisation* slightly; it did not slow
+*memorisation* at all. What actually limits the damage is early stopping.
+
+**Strong augmentation was worse than no augmentation** (0.5908 vs 0.6059), so
+more augmentation is not better — there is an optimum around "mild".
+
+Binary, same comparison:
+
+| | strong aug | mild aug (Model C recipe) |
+|---|---|---|
+| test macro F1 | 0.8323 ± 0.022 | 0.8227 ± 0.002 |
+| test accuracy | 0.8357 | 0.8293 |
+| test ROC-AUC | 0.8790 | 0.8644 |
+| train−val gap | +0.192 | +0.163 |
+
+Essentially tied — the difference is inside one standard deviation — though mild
+augmentation again gives a far more stable result (±0.002) and a slightly
+smaller gap.
+
+## Why doesn't binary reach 90%? The label, not the model.
+
+Analysis of the 209 test predictions (probabilities averaged over 3 seeds)
+against the nodule metadata:
+
+| subset | n | accuracy | AUC |
+|---|---|---|---|
+| **Confident labels** (no midpoint median, ≥3 readers, no disagreement flag) | 55 | **0.945** | **0.987** |
+| Everything else | 154 | 0.805 | 0.902 |
+
+**90%+ is already being reached — on nodules where the radiologists agreed.**
+
+Accuracy by the median malignancy score:
+
+| median | 1.0 | 2.0 | **3.5** | **4.0** | 4.5 | 5.0 |
+|---|---|---|---|---|---|---|
+| accuracy | 0.898 | 0.905 | **0.667** | **0.697** | 0.917 | 0.900 |
+| n | 49 | 63 | 27 | 33 | 12 | 20 |
+
+The confident extremes score ~90%. Median **3.5** collapses to 0.667 — and 3.5
+is not an original radiologist rating at all, it is an artefact of averaging
+disagreeing readers. Related splits: nodules with a `midpoint_median_v2` flag
+score 0.667 vs 0.868; single-reader nodules score 0.722 vs 0.903 for
+three-reader nodules; nodules with `disagreement_flag` score 0.813 vs 0.864.
+
+The model is also **appropriately uncertain** rather than confidently wrong:
+mean confidence 0.762 on correct predictions versus 0.462 on errors. Of 33
+errors, 19 are on median 3.5 or 4.0 cases.
+
+So the binary ceiling is **label noise**, and it is concentrated in a
+well-identified, flaggable subset.
+
+Three things that would raise the number, in order of value:
+
+1. **Exclude midpoint medians.** Dropping the 27 `midpoint_median_v2` nodules
+   removes the worst-performing group. Based on the subset analysis all three
+   representations should approach 90%, and the resulting claim would be much
+   cleaner than the current mixed cohort.
+2. **Ensemble the seeds.** Averaging probabilities over my 3 existing seeds
+   lifts test AUC from 0.8790 to **0.9250** at zero extra training cost.
+3. **Threshold tuning on validation.** The default 0.5 is not optimal; on test
+   the best threshold is ~0.62. This must be selected on validation, never test,
+   so I have not applied it to any reported number.
+
+## Caveat on all of the above
+
+Differences of less than roughly 0.05 macro-F1 on a 396-nodule (3-class) or
+209-nodule (binary) test set are inside the bootstrap confidence intervals.
+Model C beating no-augmentation by 0.0075 is **not** a statistically
+demonstrated win; the reduction in seed variance from ±0.024 to ±0.007 is the
+more trustworthy observation.

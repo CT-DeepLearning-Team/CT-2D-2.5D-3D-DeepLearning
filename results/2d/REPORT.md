@@ -31,7 +31,200 @@ Inference: 0.7548 ms/nodule (batch 128), 5.934 ms for a single nodule; peak GPU 
 
 These matter for reading the numbers: 3-class accuracy near 0.50 is only marginally above the majority rate, whereas macro-F1 near 0.50 is a genuine result.
 
-## 3-class supervised baseline (Model A)
+## Model A — 3-class supervised, NO augmentation
+
+Seeds: 0, 1, 2 (n = 3), reported as mean ± std.
+
+| metric | validation | test |
+|---|---|---|
+| **macro F1** | 0.5982 ± 0.0071 | **0.6059 ± 0.0239** |
+| accuracy | 0.5916 ± 0.0098 | **0.6002 ± 0.0239** |
+| balanced accuracy | 0.6052 ± 0.0092 | **0.6061 ± 0.0227** |
+| macro precision | 0.6033 ± 0.0037 | 0.6097 ± 0.0231 |
+| macro recall | 0.6052 ± 0.0092 | 0.6061 ± 0.0227 |
+| ROC-AUC (OvR macro) | 0.7473 ± 0.0076 | **0.7565 ± 0.0146** |
+
+**Best validation macro-F1 (selection metric):** 0.5982 ± 0.0071  
+**Best epoch:** [30, 14, 8] (of [50, 34, 28] run)
+
+Per-class test metrics:
+
+| class | precision | recall | F1 |
+|---|---|---|---|
+| benign | 0.5274 ± 0.0370 | 0.5527 ± 0.0769 | **0.5362 ± 0.0427** |
+| indeterminate | 0.6066 ± 0.0212 | 0.5954 ± 0.0431 | **0.6001 ± 0.0270** |
+| malignant | 0.6950 ± 0.0297 | 0.6703 ± 0.0285 | **0.6814 ± 0.0132** |
+
+Test macro-F1 bootstrap 95% CI per seed: [0.591, 0.685]; [0.533, 0.634]; [0.544, 0.639]
+
+Test confusion matrix, pooled over 3 seeds (rows = true, columns = predicted; order benign, indeterminate, malignant):
+
+```
+                    benign indetermi malignant
+  true benign           194       139        18
+  true indetermin       163       334        64
+  true malignant         13        78       185
+```
+
+Single-seed (seed 0) confusion matrix, for a per-run view:
+
+```
+  true benign            70        42         5
+  true indetermin        49       118        20
+  true malignant          3        26        63
+```
+
+Overfitting: train − validation macro-F1 was +0.386 at the selected epoch and +0.418 by the last epoch run.  
+Validation → test drift in macro-F1: +0.0077.
+
+Training settings: lr 0.001, weight decay 0.05, dropout 0.5, augmentation `none`, label smoothing 0.1, batch size 64, AdamW + cosine schedule, inverse-frequency class weights, early stopping patience 20 on validation macro-F1, max 80 epochs.  
+Training time: 2.1 min/seed | parameters: 11,171,779
+
+## Model B — 3-class MoCo v2 + fine-tune, NO augmentation
+
+Seeds: 0, 1, 2 (n = 3), reported as mean ± std.
+
+| metric | validation | test |
+|---|---|---|
+| **macro F1** | 0.6135 ± 0.0023 | **0.5957 ± 0.0086** |
+| accuracy | 0.6073 ± 0.0021 | **0.5926 ± 0.0086** |
+| balanced accuracy | 0.6161 ± 0.0035 | **0.5908 ± 0.0129** |
+| macro precision | 0.6206 ± 0.0027 | 0.6032 ± 0.0019 |
+| macro recall | 0.6161 ± 0.0035 | 0.5908 ± 0.0129 |
+| ROC-AUC (OvR macro) | 0.7425 ± 0.0039 | **0.7579 ± 0.0087** |
+
+**Best validation macro-F1 (selection metric):** 0.6135 ± 0.0023  
+**Best epoch:** [15, 39, 9] (of [35, 59, 29] run)
+
+Per-class test metrics:
+
+| class | precision | recall | F1 |
+|---|---|---|---|
+| benign | 0.5073 ± 0.0172 | 0.5271 ± 0.0040 | **0.5169 ± 0.0108** |
+| indeterminate | 0.6013 ± 0.0110 | 0.6150 ± 0.0076 | **0.6080 ± 0.0054** |
+| malignant | 0.7011 ± 0.0248 | 0.6304 ± 0.0387 | **0.6623 ± 0.0117** |
+
+Test macro-F1 bootstrap 95% CI per seed: [0.552, 0.648]; [0.553, 0.650]; [0.531, 0.636]
+
+Test confusion matrix, pooled over 3 seeds (rows = true, columns = predicted; order benign, indeterminate, malignant):
+
+```
+                    benign indetermi malignant
+  true benign           185       153        13
+  true indetermin       154       345        62
+  true malignant         26        76       174
+```
+
+Single-seed (seed 0) confusion matrix, for a per-run view:
+
+```
+  true benign            62        49         6
+  true indetermin        52       113        22
+  true malignant          7        24        61
+```
+
+Overfitting: train − validation macro-F1 was +0.379 at the selected epoch and +0.411 by the last epoch run.  
+Validation → test drift in macro-F1: -0.0178.
+
+Training settings: lr 0.001, weight decay 0.05, dropout 0.5, augmentation `none`, label smoothing 0.1, batch size 64, AdamW + cosine schedule, inverse-frequency class weights, early stopping patience 20 on validation macro-F1, max 80 epochs.  
+Training time: 2.2 min/seed | parameters: 11,171,779
+
+## Model C — 3-class supervised, mild augmentation
+
+Seeds: 0, 1, 2 (n = 3), reported as mean ± std.
+
+| metric | validation | test |
+|---|---|---|
+| **macro F1** | 0.5962 ± 0.0101 | **0.6134 ± 0.0075** |
+| accuracy | 0.5846 ± 0.0122 | **0.6128 ± 0.0146** |
+| balanced accuracy | 0.5998 ± 0.0111 | **0.6110 ± 0.0032** |
+| macro precision | 0.5965 ± 0.0104 | 0.6223 ± 0.0092 |
+| macro recall | 0.5998 ± 0.0111 | 0.6110 ± 0.0032 |
+| ROC-AUC (OvR macro) | 0.7331 ± 0.0028 | **0.7595 ± 0.0046** |
+
+**Best validation macro-F1 (selection metric):** 0.5962 ± 0.0101  
+**Best epoch:** [12, 50, 11] (of [32, 70, 31] run)
+
+Per-class test metrics:
+
+| class | precision | recall | F1 |
+|---|---|---|---|
+| benign | 0.5467 ± 0.0518 | 0.5499 ± 0.0678 | **0.5421 ± 0.0099** |
+| indeterminate | 0.6251 ± 0.0096 | 0.6346 ± 0.0744 | **0.6274 ± 0.0359** |
+| malignant | 0.6950 ± 0.0386 | 0.6486 ± 0.0185 | **0.6708 ± 0.0274** |
+
+Test macro-F1 bootstrap 95% CI per seed: [0.555, 0.649]; [0.574, 0.668]; [0.566, 0.664]
+
+Test confusion matrix, pooled over 3 seeds (rows = true, columns = predicted; order benign, indeterminate, malignant):
+
+```
+                    benign indetermi malignant
+  true benign           193       139        19
+  true indetermin       145       356        60
+  true malignant         22        75       179
+```
+
+Single-seed (seed 0) confusion matrix, for a per-run view:
+
+```
+  true benign            75        36         6
+  true indetermin        67       101        19
+  true malignant         11        22        59
+```
+
+Overfitting: train − validation macro-F1 was +0.394 at the selected epoch and +0.422 by the last epoch run.  
+Validation → test drift in macro-F1: +0.0172.
+
+Training settings: lr 0.001, weight decay 0.05, dropout 0.5, augmentation `mild`, label smoothing 0.1, batch size 64, AdamW + cosine schedule, inverse-frequency class weights, early stopping patience 20 on validation macro-F1, max 80 epochs.  
+Training time: 2.4 min/seed | parameters: 11,171,779
+
+## Binary supervised, mild augmentation (Model C recipe)
+
+Seeds: 0, 1, 2 (n = 3), reported as mean ± std.
+
+| metric | validation | test |
+|---|---|---|
+| **macro F1** | 0.8328 ± 0.0122 | **0.8227 ± 0.0024** |
+| accuracy | 0.8417 ± 0.0120 | **0.8293 ± 0.0045** |
+| balanced accuracy | 0.8319 ± 0.0118 | **0.8182 ± 0.0007** |
+| macro precision | 0.8348 ± 0.0136 | 0.8391 ± 0.0122 |
+| macro recall | 0.8319 ± 0.0118 | 0.8182 ± 0.0007 |
+| ROC-AUC | 0.8546 ± 0.0161 | **0.8644 ± 0.0041** |
+
+**Best validation macro-F1 (selection metric):** 0.8328 ± 0.0122  
+**Best epoch:** [20, 19, 16] (of [40, 39, 36] run)
+
+Per-class test metrics:
+
+| class | precision | recall | F1 |
+|---|---|---|---|
+| benign | 0.8088 ± 0.0136 | 0.9117 ± 0.0344 | **0.8565 ± 0.0080** |
+| malignant | 0.8693 ± 0.0379 | 0.7246 ± 0.0336 | **0.7888 ± 0.0033** |
+
+Test macro-F1 bootstrap 95% CI per seed: [0.770, 0.874]; [0.764, 0.869]; [0.770, 0.876]
+
+Test confusion matrix, pooled over 3 seeds (rows = true, columns = predicted; order benign, malignant):
+
+```
+                    benign malignant
+  true benign           320        31
+  true malignant         76       200
+```
+
+Single-seed (seed 0) confusion matrix, for a per-run view:
+
+```
+  true benign           109         8
+  true malignant         27        65
+```
+
+Overfitting: train − validation macro-F1 was +0.163 at the selected epoch and +0.189 by the last epoch run.  
+Validation → test drift in macro-F1: -0.0101.
+
+Training settings: lr 0.001, weight decay 0.05, dropout 0.5, augmentation `mild`, label smoothing 0.1, batch size 64, AdamW + cosine schedule, inverse-frequency class weights, early stopping patience 20 on validation macro-F1, max 80 epochs.  
+Training time: 1.2 min/seed | parameters: 11,171,266
+
+## Model A variant — 3-class supervised, strong augmentation
 
 Seeds: 0, 1, 2 (n = 3), reported as mean ± std.
 
@@ -80,7 +273,7 @@ Validation → test drift in macro-F1: +0.0085.
 Training settings: lr 0.001, weight decay 0.05, dropout 0.5, augmentation `strong`, label smoothing 0.1, batch size 64, AdamW + cosine schedule, inverse-frequency class weights, early stopping patience 20 on validation macro-F1, max 80 epochs.  
 Training time: 3.5 min/seed | parameters: 11,171,779
 
-## 3-class MoCo v2 + fine-tuning (Model B)
+## Model B variant — 3-class MoCo v2, strong augmentation
 
 Seeds: 0, 1, 2 (n = 3), reported as mean ± std.
 
@@ -129,7 +322,7 @@ Validation → test drift in macro-F1: +0.0037.
 Training settings: lr 0.001, weight decay 0.05, dropout 0.5, augmentation `strong`, label smoothing 0.1, batch size 64, AdamW + cosine schedule, inverse-frequency class weights, early stopping patience 20 on validation macro-F1, max 80 epochs.  
 Training time: 2.2 min/seed | parameters: 11,171,779
 
-## Binary supervised (sensitivity analysis)
+## Binary variant — strong augmentation
 
 Seeds: 0, 1, 2 (n = 3), reported as mean ± std.
 
@@ -175,18 +368,34 @@ Validation → test drift in macro-F1: +0.0303.
 Training settings: lr 0.001, weight decay 0.05, dropout 0.5, augmentation `strong`, label smoothing 0.1, batch size 64, AdamW + cosine schedule, inverse-frequency class weights, early stopping patience 20 on validation macro-F1, max 80 epochs.  
 Training time: 2.5 min/seed | parameters: 11,171,266
 
+## Comparison 0 — does augmentation control overfitting? (3-class)
+
+All three rows use an identical recipe and differ only in the training-time augmentation. Validation and test are never augmented.
+
+| | no augmentation | mild (Model C) | strong |
+|---|---|---|---|
+| test macro F1 | 0.6059 | **0.6134** | 0.5908 |
+| seed std (test macro F1) | ±0.024 | **±0.007** | ±0.024 |
+| test accuracy | 0.6002 | 0.6128 | 0.5850 |
+| test balanced accuracy | 0.6061 | 0.6110 | 0.5920 |
+| test ROC-AUC | 0.7565 | 0.7595 | 0.7511 |
+| train−val macro F1 gap at selected epoch | +0.386 | +0.394 | +0.386 |
+| epoch where train macro F1 first exceeds 0.90 | 7 | 7–8 | 7–8 |
+
+**Augmentation improved generalisation but did not control overfitting.** Mild augmentation gives the best test macro-F1 and by far the most stable result across seeds (±0.007 vs ±0.024), but the train−validation gap is unchanged (+0.394 vs +0.386) and the network still reaches training macro-F1 above 0.90 by epoch 7 and 1.000 shortly after, with or without augmentation. Strong augmentation was worse than none.
+
 ## Comparison 1 — supervised vs MoCo on the 3-class task
 
 | metric | Model A (supervised) | Model B (MoCo) | Δ (B − A) |
 |---|---|---|---|
-| test macro F1 | 0.5908 | 0.5803 | -0.0105 |
-| test accuracy | 0.5850 | 0.5732 | -0.0118 |
-| test balanced accuracy | 0.5920 | 0.5774 | -0.0146 |
-| test ROC-AUC (OvR macro) | 0.7511 | 0.7515 | +0.0004 |
-| test F1 benign | 0.5158 | 0.4905 | -0.0254 |
-| test F1 indeterminate | 0.5877 | 0.5793 | -0.0084 |
-| test F1 malignant | 0.6689 | 0.6713 | +0.0024 |
-| best validation macro F1 | 0.5823 | 0.5767 | -0.0056 |
+| test macro F1 | 0.6059 | 0.5957 | -0.0102 |
+| test accuracy | 0.6002 | 0.5926 | -0.0076 |
+| test balanced accuracy | 0.6061 | 0.5908 | -0.0153 |
+| test ROC-AUC (OvR macro) | 0.7565 | 0.7579 | +0.0015 |
+| test F1 benign | 0.5362 | 0.5169 | -0.0193 |
+| test F1 indeterminate | 0.6001 | 0.6080 | +0.0079 |
+| test F1 malignant | 0.6814 | 0.6623 | -0.0191 |
+| best validation macro F1 | 0.5982 | 0.6135 | +0.0154 |
 
 ## Comparison 2 — 3-class vs binary (sensitivity analysis)
 
@@ -194,12 +403,12 @@ Both supervised, same architecture, same settings, same seeds. The binary cohort
 
 | metric | 3-class | binary | Δ |
 |---|---|---|---|
-| test macro F1 | 0.5908 | 0.8323 | +0.2415 |
-| test accuracy | 0.5850 | 0.8357 | +0.2507 |
-| test balanced accuracy | 0.5920 | 0.8304 | +0.2384 |
-| test ROC-AUC | 0.7511 (OvR macro) | 0.8790 (binary) | +0.1279 |
-| test F1 benign | 0.5158 | 0.8563 | +0.3404 |
-| test F1 malignant | 0.6689 | 0.8083 | +0.1394 |
+| test macro F1 | 0.6059 | 0.8227 | +0.2168 |
+| test accuracy | 0.6002 | 0.8293 | +0.2292 |
+| test balanced accuracy | 0.6061 | 0.8182 | +0.2120 |
+| test ROC-AUC | 0.7565 (OvR macro) | 0.8644 (binary) | +0.1079 |
+| test F1 benign | 0.5362 | 0.8565 | +0.3203 |
+| test F1 malignant | 0.6814 | 0.7888 | +0.1074 |
 
 Note the two tasks are not directly comparable on macro-F1 alone — a 2-class macro-F1 has a higher chance level (0.33 vs 0.21 for the majority baseline). The per-class F1 for benign and malignant, and the ROC-AUC, are the fairer comparison.
 

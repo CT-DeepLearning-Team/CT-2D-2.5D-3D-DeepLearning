@@ -48,10 +48,13 @@ def augment_supervised(x: torch.Tensor, rng: np.random.Generator,
                        strength: str = "mild") -> torch.Tensor:
     """Augmentation for supervised training. x: (C, H, W) in [0, 1].
 
-    `strength="strong"` widens every range and adds random erasing; with only
+    `strength="none"` disables augmentation entirely (for the no-augmentation
+    baseline). `strength="strong"` widens every range and adds random erasing; with only
     1876 training nodules and an 11.7M-parameter ResNet-18, aggressive
     augmentation is one of the few regularisers the frozen protocol allows.
     """
+    if strength == "none":
+        return x.clamp(0.0, 1.0)
     p = dict(rot=15.0, tr=0.06, sc=0.1, it=0.1, sh=0.05, nz=0.02, erase=0.0)
     if strength == "strong":
         p = dict(rot=30.0, tr=0.12, sc=0.2, it=0.3, sh=0.15, nz=0.05, erase=0.25)

@@ -1,6 +1,384 @@
 {
+  "model_a_noaug": {
+    "title": "Model A \u2014 3-class supervised, NO augmentation",
+    "task": "3class",
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "architecture": "ResNet-18 (2D, 1-channel central slice)",
+    "parameters": 11171779,
+    "best_epoch": [
+      30,
+      14,
+      8
+    ],
+    "best_val_macro_f1_mean": 0.5981646562728052,
+    "class_names": [
+      "benign",
+      "indeterminate",
+      "malignant"
+    ],
+    "test_confusion_matrix_pooled": [
+      [
+        194,
+        139,
+        18
+      ],
+      [
+        163,
+        334,
+        64
+      ],
+      [
+        13,
+        78,
+        185
+      ]
+    ],
+    "settings": {
+      "task": "3class",
+      "init": "random",
+      "moco_ckpt": "",
+      "seed": 0,
+      "epochs": 80,
+      "batch_size": 64,
+      "lr": 0.001,
+      "wd": 0.05,
+      "dropout": 0.5,
+      "patience": 20,
+      "tag": "model_a_noaug",
+      "workers": 4,
+      "label_smoothing": 0.1,
+      "aug": "none",
+      "eval_test": true
+    },
+    "validation_macro_f1_mean": 0.5981646562728052,
+    "validation_macro_f1_std": 0.0070728906694733406,
+    "validation_accuracy_mean": 0.5916230366492147,
+    "validation_accuracy_std": 0.00979491462506267,
+    "validation_balanced_accuracy_mean": 0.6052232521980497,
+    "validation_balanced_accuracy_std": 0.009214273558118657,
+    "validation_macro_precision_mean": 0.6033107292648469,
+    "validation_macro_precision_std": 0.0036533463919865335,
+    "validation_macro_recall_mean": 0.6052232521980497,
+    "validation_macro_recall_std": 0.009214273558118657,
+    "validation_roc_auc_ovr_macro_mean": 0.7473137160619426,
+    "validation_roc_auc_ovr_macro_std": 0.00755993637220261,
+    "validation_precision_benign_mean": 0.5845507433742728,
+    "validation_recall_benign_mean": 0.49253731343283585,
+    "validation_f1_benign_mean": 0.5260868658160555,
+    "validation_precision_indeterminate_mean": 0.5737800631270098,
+    "validation_recall_indeterminate_mean": 0.6094069529652352,
+    "validation_f1_indeterminate_mean": 0.5888714506768019,
+    "validation_precision_malignant_mean": 0.6516013812932581,
+    "validation_recall_malignant_mean": 0.7137254901960784,
+    "validation_f1_malignant_mean": 0.6795356523255583,
+    "test_macro_f1_mean": 0.6059032941607825,
+    "test_macro_f1_std": 0.023944282916354604,
+    "test_accuracy_mean": 0.6001683501683502,
+    "test_accuracy_std": 0.023897423512758257,
+    "test_balanced_accuracy_mean": 0.6061206088912825,
+    "test_balanced_accuracy_std": 0.022729364226877095,
+    "test_macro_precision_mean": 0.6096663339166537,
+    "test_macro_precision_std": 0.023078865075578534,
+    "test_macro_recall_mean": 0.6061206088912825,
+    "test_macro_recall_std": 0.022729364226877095,
+    "test_roc_auc_ovr_macro_mean": 0.7564747152917568,
+    "test_roc_auc_ovr_macro_std": 0.014581850075082618,
+    "test_precision_benign_mean": 0.5274148311886236,
+    "test_recall_benign_mean": 0.5527065527065527,
+    "test_f1_benign_mean": 0.5362029745058446,
+    "test_precision_indeterminate_mean": 0.6065776045230254,
+    "test_recall_indeterminate_mean": 0.5953654188948306,
+    "test_f1_indeterminate_mean": 0.6001054273964398,
+    "test_precision_malignant_mean": 0.695006566038312,
+    "test_recall_malignant_mean": 0.6702898550724639,
+    "test_f1_malignant_mean": 0.6814014805800629
+  },
+  "model_b_noaug": {
+    "title": "Model B \u2014 3-class MoCo v2 + fine-tune, NO augmentation",
+    "task": "3class",
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "architecture": "ResNet-18 (2D, 1-channel central slice)",
+    "parameters": 11171779,
+    "best_epoch": [
+      15,
+      39,
+      9
+    ],
+    "best_val_macro_f1_mean": 0.6135191560797532,
+    "class_names": [
+      "benign",
+      "indeterminate",
+      "malignant"
+    ],
+    "test_confusion_matrix_pooled": [
+      [
+        185,
+        153,
+        13
+      ],
+      [
+        154,
+        345,
+        62
+      ],
+      [
+        26,
+        76,
+        174
+      ]
+    ],
+    "settings": {
+      "task": "3class",
+      "init": "moco",
+      "moco_ckpt": "results/2d/moco/moco_encoder.pt",
+      "seed": 0,
+      "epochs": 80,
+      "batch_size": 64,
+      "lr": 0.001,
+      "wd": 0.05,
+      "dropout": 0.5,
+      "patience": 20,
+      "tag": "model_b_noaug",
+      "workers": 4,
+      "label_smoothing": 0.1,
+      "aug": "none",
+      "eval_test": true
+    },
+    "validation_macro_f1_mean": 0.6135191560797532,
+    "validation_macro_f1_std": 0.002340103763758017,
+    "validation_accuracy_mean": 0.6073298429319371,
+    "validation_accuracy_std": 0.0021374256045228225,
+    "validation_balanced_accuracy_mean": 0.6160533792004731,
+    "validation_balanced_accuracy_std": 0.0034874741405500334,
+    "validation_macro_precision_mean": 0.6205914573402748,
+    "validation_macro_precision_std": 0.002742803509693444,
+    "validation_macro_recall_mean": 0.6160533792004731,
+    "validation_macro_recall_std": 0.0034874741405500334,
+    "validation_roc_auc_ovr_macro_mean": 0.74253369727623,
+    "validation_roc_auc_ovr_macro_std": 0.003888571518315189,
+    "validation_precision_benign_mean": 0.5828948742039878,
+    "validation_recall_benign_mean": 0.4577114427860696,
+    "validation_f1_benign_mean": 0.5105981701875137,
+    "validation_precision_indeterminate_mean": 0.5814350832972807,
+    "validation_recall_indeterminate_mean": 0.67280163599182,
+    "validation_f1_indeterminate_mean": 0.6235298506766651,
+    "validation_precision_malignant_mean": 0.697444414519556,
+    "validation_recall_malignant_mean": 0.7176470588235295,
+    "validation_f1_malignant_mean": 0.7064294473750804,
+    "test_macro_f1_mean": 0.5957385568396822,
+    "test_macro_f1_std": 0.008619984396533192,
+    "test_accuracy_mean": 0.5925925925925926,
+    "test_accuracy_std": 0.008584207935341393,
+    "test_balanced_accuracy_mean": 0.5908245239021028,
+    "test_balanced_accuracy_std": 0.012911704384556596,
+    "test_macro_precision_mean": 0.6032424157644631,
+    "test_macro_precision_std": 0.0018982457639129615,
+    "test_macro_recall_mean": 0.5908245239021028,
+    "test_macro_recall_std": 0.012911704384556596,
+    "test_roc_auc_ovr_macro_mean": 0.7579277994887031,
+    "test_roc_auc_ovr_macro_std": 0.008710918967973668,
+    "test_precision_benign_mean": 0.5073158023851398,
+    "test_recall_benign_mean": 0.5270655270655271,
+    "test_f1_benign_mean": 0.516908530332718,
+    "test_precision_indeterminate_mean": 0.6013039277894966,
+    "test_recall_indeterminate_mean": 0.6149732620320856,
+    "test_f1_indeterminate_mean": 0.6079600471021382,
+    "test_precision_malignant_mean": 0.7011075171187531,
+    "test_recall_malignant_mean": 0.6304347826086957,
+    "test_f1_malignant_mean": 0.6623470930841906
+  },
+  "model_c_mild": {
+    "title": "Model C \u2014 3-class supervised, mild augmentation",
+    "task": "3class",
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "architecture": "ResNet-18 (2D, 1-channel central slice)",
+    "parameters": 11171779,
+    "best_epoch": [
+      12,
+      50,
+      11
+    ],
+    "best_val_macro_f1_mean": 0.5962320337839001,
+    "class_names": [
+      "benign",
+      "indeterminate",
+      "malignant"
+    ],
+    "test_confusion_matrix_pooled": [
+      [
+        193,
+        139,
+        19
+      ],
+      [
+        145,
+        356,
+        60
+      ],
+      [
+        22,
+        75,
+        179
+      ]
+    ],
+    "settings": {
+      "task": "3class",
+      "init": "random",
+      "moco_ckpt": "",
+      "seed": 0,
+      "epochs": 80,
+      "batch_size": 64,
+      "lr": 0.001,
+      "wd": 0.05,
+      "dropout": 0.5,
+      "patience": 20,
+      "tag": "model_c_mild",
+      "workers": 4,
+      "label_smoothing": 0.1,
+      "aug": "mild",
+      "eval_test": true
+    },
+    "validation_macro_f1_mean": 0.5962320337839001,
+    "validation_macro_f1_std": 0.010133544342418527,
+    "validation_accuracy_mean": 0.5846422338568936,
+    "validation_accuracy_std": 0.012153916472237436,
+    "validation_balanced_accuracy_mean": 0.5997699461312468,
+    "validation_balanced_accuracy_std": 0.011061631731393037,
+    "validation_macro_precision_mean": 0.5964524881830934,
+    "validation_macro_precision_std": 0.010414942425298638,
+    "validation_macro_recall_mean": 0.5997699461312468,
+    "validation_macro_recall_std": 0.011061631731393037,
+    "validation_roc_auc_ovr_macro_mean": 0.7330869680786285,
+    "validation_roc_auc_ovr_macro_std": 0.0027965109739368464,
+    "validation_precision_benign_mean": 0.5537612146307799,
+    "validation_recall_benign_mean": 0.49253731343283585,
+    "validation_f1_benign_mean": 0.5194773740126394,
+    "validation_precision_indeterminate_mean": 0.561624649859944,
+    "validation_recall_indeterminate_mean": 0.5930470347648261,
+    "validation_f1_indeterminate_mean": 0.5759978596183402,
+    "validation_precision_malignant_mean": 0.6739716000585565,
+    "validation_recall_malignant_mean": 0.7137254901960786,
+    "validation_f1_malignant_mean": 0.6932208677207208,
+    "test_macro_f1_mean": 0.61340636070154,
+    "test_macro_f1_std": 0.007483553323225534,
+    "test_accuracy_mean": 0.6127946127946128,
+    "test_accuracy_std": 0.014628070031130275,
+    "test_balanced_accuracy_mean": 0.6109964598881906,
+    "test_balanced_accuracy_std": 0.0031788068469843192,
+    "test_macro_precision_mean": 0.6222617875385384,
+    "test_macro_precision_std": 0.00919815502939714,
+    "test_macro_recall_mean": 0.6109964598881906,
+    "test_macro_recall_std": 0.0031788068469843192,
+    "test_roc_auc_ovr_macro_mean": 0.7595433598572097,
+    "test_roc_auc_ovr_macro_std": 0.004561613962092662,
+    "test_precision_benign_mean": 0.5466878174788925,
+    "test_recall_benign_mean": 0.5498575498575499,
+    "test_f1_benign_mean": 0.5420686450729368,
+    "test_precision_indeterminate_mean": 0.6251240001631777,
+    "test_recall_indeterminate_mean": 0.6345811051693405,
+    "test_f1_indeterminate_mean": 0.627362891244137,
+    "test_precision_malignant_mean": 0.694973544973545,
+    "test_recall_malignant_mean": 0.6485507246376812,
+    "test_f1_malignant_mean": 0.6707875457875457
+  },
+  "binary_mild": {
+    "title": "Binary supervised, mild augmentation (Model C recipe)",
+    "task": "binary",
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "architecture": "ResNet-18 (2D, 1-channel central slice)",
+    "parameters": 11171266,
+    "best_epoch": [
+      20,
+      19,
+      16
+    ],
+    "best_val_macro_f1_mean": 0.832807417349402,
+    "class_names": [
+      "benign",
+      "malignant"
+    ],
+    "test_confusion_matrix_pooled": [
+      [
+        320,
+        31
+      ],
+      [
+        76,
+        200
+      ]
+    ],
+    "settings": {
+      "task": "binary",
+      "init": "random",
+      "moco_ckpt": "",
+      "seed": 0,
+      "epochs": 80,
+      "batch_size": 64,
+      "lr": 0.001,
+      "wd": 0.05,
+      "dropout": 0.5,
+      "patience": 20,
+      "tag": "binary_mild",
+      "workers": 4,
+      "label_smoothing": 0.1,
+      "aug": "mild",
+      "eval_test": true
+    },
+    "validation_macro_f1_mean": 0.832807417349402,
+    "validation_macro_f1_std": 0.012205584181418434,
+    "validation_accuracy_mean": 0.8417047184170471,
+    "validation_accuracy_std": 0.011984791284645059,
+    "validation_balanced_accuracy_mean": 0.8319285923324554,
+    "validation_balanced_accuracy_std": 0.011820610544653921,
+    "validation_macro_precision_mean": 0.8348279549437373,
+    "validation_macro_precision_std": 0.01357292766183013,
+    "validation_macro_recall_mean": 0.8319285923324554,
+    "validation_macro_recall_std": 0.011820610544653921,
+    "validation_roc_auc_mean": 0.8545507755340943,
+    "validation_roc_auc_std": 0.016128787721401444,
+    "validation_precision_benign_mean": 0.8674123201438849,
+    "validation_recall_benign_mean": 0.8756218905472637,
+    "validation_f1_benign_mean": 0.8711703902543597,
+    "validation_precision_malignant_mean": 0.8022435897435898,
+    "validation_recall_malignant_mean": 0.788235294117647,
+    "validation_f1_malignant_mean": 0.7944444444444444,
+    "test_macro_f1_mean": 0.822674068748887,
+    "test_macro_f1_std": 0.002446401702311664,
+    "test_accuracy_mean": 0.8293460925039873,
+    "test_accuracy_std": 0.004511048045847217,
+    "test_balanced_accuracy_mean": 0.8181592964201659,
+    "test_balanced_accuracy_std": 0.0006681360402078255,
+    "test_macro_precision_mean": 0.8390587089334994,
+    "test_macro_precision_std": 0.01215174432830263,
+    "test_macro_recall_mean": 0.8181592964201659,
+    "test_macro_recall_std": 0.0006681360402078255,
+    "test_roc_auc_mean": 0.8644246252941906,
+    "test_roc_auc_std": 0.004059686148919549,
+    "test_precision_benign_mean": 0.808813629989891,
+    "test_recall_benign_mean": 0.9116809116809117,
+    "test_f1_benign_mean": 0.8565311538698092,
+    "test_precision_malignant_mean": 0.8693037878771078,
+    "test_recall_malignant_mean": 0.7246376811594203,
+    "test_f1_malignant_mean": 0.7888169836279649
+  },
   "model_a": {
-    "title": "3-class supervised baseline (Model A)",
+    "title": "Model A variant \u2014 3-class supervised, strong augmentation",
     "task": "3class",
     "seeds": [
       0,
@@ -97,7 +475,7 @@
     "test_f1_malignant_mean": 0.6688673468262412
   },
   "model_b": {
-    "title": "3-class MoCo v2 + fine-tuning (Model B)",
+    "title": "Model B variant \u2014 3-class MoCo v2, strong augmentation",
     "task": "3class",
     "seeds": [
       0,
@@ -195,7 +573,7 @@
     "test_f1_malignant_mean": 0.6712606098920454
   },
   "binary_supervised": {
-    "title": "Binary supervised (sensitivity analysis)",
+    "title": "Binary variant \u2014 strong augmentation",
     "task": "binary",
     "seeds": [
       0,

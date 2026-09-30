@@ -70,7 +70,7 @@ def main() -> None:
     ap.add_argument("--tag", type=str, default="")
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--label-smoothing", type=float, default=0.05)
-    ap.add_argument("--aug", choices=["mild", "strong"], default="mild")
+    ap.add_argument("--aug", choices=["none", "mild", "strong"], default="mild")
     ap.add_argument("--eval-test", action="store_true",
                     help="Evaluate the TEST split. Off during hyperparameter "
                          "search so the test set stays untouched until the "
