@@ -1,0 +1,13 @@
+representation,experiment,task,validation_macro_f1,test_accuracy,test_balanced_accuracy,test_macro_f1,test_macro_f1_std,roc_auc,reporting_note
+2D,A,3-class,0.5982,0.6002,0.6061,0.6059,0.024,0.7565,2D test Macro-F1 values were reported as mean ± standard deviation across three seeds.
+2D,B,3-class,0.6135,0.5926,0.5908,0.5957,0.009,0.7579,2D test Macro-F1 values were reported as mean ± standard deviation across three seeds.
+2D,C,3-class,0.5962,0.6128,0.6110,0.6134,0.007,0.7595,2D test Macro-F1 values were reported as mean ± standard deviation across three seeds.
+2D,Binary,binary,0.8328,0.8293,0.8182,0.8227,0.002,0.8644,2D test Macro-F1 values were reported as mean ± standard deviation across three seeds.
+2.5D,A,3-class,0.5883,0.6086,0.6060,0.6075,,0.7583,Currently reported as the final selected run; no multi-seed standard deviation has been supplied.
+2.5D,B,3-class,0.5516,0.5126,0.4914,0.5125,,0.6922,Currently reported as the final selected run; no multi-seed standard deviation has been supplied.
+2.5D,C,3-class,0.5857,0.6869,0.6413,0.6537,,0.7894,Currently reported as the final selected run; no multi-seed standard deviation has been supplied.
+2.5D,Binary,binary,0.8583,0.8708,0.8614,0.8664,,0.9215,Currently reported as the final selected run; no multi-seed standard deviation has been supplied.
+3D,A,3-class,0.513904,0.494949,0.479044,0.492761,,0.656366,Final frozen 3D seed-42 runs.
+3D,B,3-class,0.512672,0.459596,0.468331,0.473008,,0.669224,Final frozen 3D seed-42 runs.
+3D,C,3-class,0.535629,0.545455,0.546072,0.540307,,0.716477,Final frozen 3D seed-42 runs.
+3D,Binary,binary,0.795394,0.760766,0.753809,0.755384,,0.816797,Final frozen 3D seed-42 runs.
