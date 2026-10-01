@@ -1,0 +1,5 @@
+experiment,task,best_epoch,train_accuracy,validation_accuracy,validation_macro_f1,test_accuracy,test_balanced_accuracy,test_macro_f1,roc_auc,notes
+Model A,3-class supervised baseline,9,0.960554,0.510471,0.513904,0.494949,0.479044,0.492761,0.656366,Deterministic post-hoc train accuracy; no augmentation
+Model B,3-class MoCo pretraining plus fine-tuning,12,0.651386,0.502618,0.512672,0.459596,0.468331,0.473008,0.669224,Deterministic post-hoc train accuracy; MoCo labels unused during SSL
+Model C,3-class supervised with train-only augmentation,16,0.858209,0.531414,0.535629,0.545455,0.546072,0.540307,0.716477,Deterministic post-hoc train accuracy; augmentation disabled for validation/test
+Binary,Benign versus malignant supervised sensitivity analysis,16,0.984000,0.803653,0.795394,0.760766,0.753809,0.755384,0.816797,Indeterminate class excluded; metrics are not directly equivalent to 3-class metrics

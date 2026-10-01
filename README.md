@@ -122,3 +122,38 @@ The objective is not only to find the highest-performing model, but to understan
 ## Status
 
 🚧 Project under development
+
+## Final 3D Track — Zaineb
+
+The final 3D track evaluates full CT volumes under the same fixed patient-level
+V2 splits used by the project. The final implementation, training/evaluation
+entry points, saved small result artifacts, and reproducible figures are kept
+separate from the existing 2D and 2.5D work.
+
+### Approach
+
+- Input: `[B, 1, 104, 72, 80]` CT volumes
+- Architecture: lightweight 3D ResNet-18 with blocks `[2,2,2,2]` and channels `16 → 32 → 64 → 128`
+- Preprocessing: clip HU values to `[-1000,400]`, then normalize with `(x + 1000) / 1400`
+- Dropout: `0.20`; seed: `42`
+- 3-class parameter count: `2,073,747`; binary parameter count: `2,073,618`
+- Checkpoint selection: validation Macro-F1
+
+### Experiments and current results
+
+- **Model A:** supervised 3-class baseline
+- **Model B:** MoCo pretraining followed by supervised 3-class fine-tuning
+- **Model C:** supervised 3-class model with mild training-only augmentation
+- **Binary:** benign-versus-malignant sensitivity analysis with indeterminate nodules excluded
+
+Model C is the strongest final three-class 3D model in the saved results:
+test accuracy `0.545455`, balanced accuracy `0.546072`, Macro-F1 `0.540307`,
+and ROC-AUC `0.716477`. The binary experiment reaches test accuracy
+`0.760766`, balanced accuracy `0.753809`, Macro-F1 `0.755384`, and ROC-AUC
+`0.816797`; these binary metrics are not directly equivalent to the 3-class
+metrics.
+
+See [3D_METHOD.md](docs/3D_METHOD.md) for the protocol and [3D_RESULTS.md](docs/3D_RESULTS.md)
+for the complete results and interpretation. Reproducible figures are in
+[results/3d/figures](results/3d/figures/), and the machine-readable table is
+[results/3d/final_3d_metrics.csv](results/3d/final_3d_metrics.csv).

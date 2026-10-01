@@ -244,3 +244,13 @@ data/cache/
 # saved probability arrays), which are reproducible from the code.
 results/**/*.pt
 results/**/*.npy
+
+# Final 3D local artifacts
+*.ckpt
+*.npy
+*.dcm
+.DS_Store
+data/3d/raw/
+data/3d/processed/
+data/3d/cache/
+runs_final_common_hu/

@@ -1,0 +1,3 @@
+true_label\predicted_label,benign,malignant
+benign,95,22
+malignant,28,64

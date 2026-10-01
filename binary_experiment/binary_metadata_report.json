@@ -1,0 +1,68 @@
+{
+  "dataset_root_read_only": "/Volumes/Zainaba-1/final_team_dataset_v2_3class",
+  "split_reports": {
+    "train": {
+      "source_rows": 1876,
+      "source_class_counts": {
+        "0": 622,
+        "1": 876,
+        "2": 378
+      },
+      "excluded_indeterminate": 876,
+      "binary_rows": 1000,
+      "binary_class_counts": {
+        "0": 622,
+        "1": 378
+      },
+      "output_csv": "/Users/zanouba/Documents/ChatGPT/LIDC-IDRI-3D-Model-Final/binary_experiment/metadata/binary_train.csv",
+      "missing_sample_or_mask_paths": 0
+    },
+    "validation": {
+      "source_rows": 382,
+      "source_class_counts": {
+        "0": 134,
+        "1": 163,
+        "2": 85
+      },
+      "excluded_indeterminate": 163,
+      "binary_rows": 219,
+      "binary_class_counts": {
+        "0": 134,
+        "1": 85
+      },
+      "output_csv": "/Users/zanouba/Documents/ChatGPT/LIDC-IDRI-3D-Model-Final/binary_experiment/metadata/binary_validation.csv",
+      "missing_sample_or_mask_paths": 0
+    },
+    "test": {
+      "source_rows": 396,
+      "source_class_counts": {
+        "0": 117,
+        "1": 187,
+        "2": 92
+      },
+      "excluded_indeterminate": 187,
+      "binary_rows": 209,
+      "binary_class_counts": {
+        "0": 117,
+        "1": 92
+      },
+      "output_csv": "/Users/zanouba/Documents/ChatGPT/LIDC-IDRI-3D-Model-Final/binary_experiment/metadata/binary_test.csv",
+      "missing_sample_or_mask_paths": 0
+    }
+  },
+  "patient_overlap": {
+    "train_validation": 0,
+    "train_test": 0,
+    "validation_test": 0
+  },
+  "patient_overlap_ids": {
+    "train_validation": [],
+    "train_test": [],
+    "validation_test": []
+  },
+  "source_metadata_and_npy_manifest_unchanged": true,
+  "source_npy_count_before": 29540,
+  "source_npy_count_after": 29540,
+  "project_npy_files_created": [],
+  "no_npy_copied_or_regenerated": true
+}

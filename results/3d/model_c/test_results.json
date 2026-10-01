@@ -1,0 +1,62 @@
+{
+  "accuracy": 0.5454545454545454,
+  "balanced_accuracy": 0.5460722378880947,
+  "macro_precision": 0.5366224762509592,
+  "macro_recall": 0.5460722378880947,
+  "macro_f1": 0.5403065598795508,
+  "per_class": {
+    "benign": {
+      "precision": 0.4230769230769231,
+      "recall": 0.37606837606837606,
+      "f1": 0.39819004524886875,
+      "support": 117
+    },
+    "indeterminate": {
+      "precision": 0.5789473684210527,
+      "recall": 0.5882352941176471,
+      "f1": 0.583554376657825,
+      "support": 187
+    },
+    "malignant": {
+      "precision": 0.6078431372549019,
+      "recall": 0.6739130434782609,
+      "f1": 0.6391752577319587,
+      "support": 92
+    }
+  },
+  "confusion_matrix": [
+    [
+      44,
+      60,
+      13
+    ],
+    [
+      50,
+      110,
+      27
+    ],
+    [
+      10,
+      20,
+      62
+    ]
+  ],
+  "num_samples": 396,
+  "loss": 0.9823774281475279,
+  "roc_auc_ovr": {
+    "macro_ovr_auc": 0.7164772793981017,
+    "per_class": {
+      "benign": 0.658058389241185,
+      "indeterminate": 0.6540951308753167,
+      "malignant": 0.8372783180778032
+    }
+  },
+  "checkpoint_path": "/Users/zanouba/Documents/ChatGPT/LIDC-IDRI-3D-Model-Final/runs_final_common_hu/3class_C_augmented_resnet18/best_model.pt",
+  "checkpoint_epoch": 16,
+  "preprocessing": {
+    "clip_min": -1000.0,
+    "clip_max": 400.0,
+    "normalization": "(x + 1000) / 1400",
+    "augmentation": false
+  }
+}

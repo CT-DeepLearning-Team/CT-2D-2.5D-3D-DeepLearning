@@ -1,0 +1,50 @@
+{
+  "accuracy": 0.7607655502392344,
+  "balanced_accuracy": 0.7538089929394277,
+  "macro_precision": 0.7582718850444319,
+  "macro_recall": 0.7538089929394277,
+  "macro_f1": 0.7553838951310863,
+  "per_class": {
+    "benign": {
+      "precision": 0.7723577235772358,
+      "recall": 0.811965811965812,
+      "f1": 0.7916666666666667,
+      "support": 117
+    },
+    "malignant": {
+      "precision": 0.7441860465116279,
+      "recall": 0.6956521739130435,
+      "f1": 0.7191011235955057,
+      "support": 92
+    }
+  },
+  "confusion_matrix": [
+    [
+      95,
+      22
+    ],
+    [
+      28,
+      64
+    ]
+  ],
+  "num_samples": 209,
+  "loss": 0.64073424461926,
+  "roc_auc_ovr": {
+    "macro_ovr_auc": 0.8167967298402081,
+    "per_class": {
+      "benign": 0.8167967298402081,
+      "malignant": 0.8167967298402081
+    }
+  },
+  "roc_auc": 0.8167967298402081,
+  "checkpoint_path": "/Users/zanouba/Documents/ChatGPT/LIDC-IDRI-3D-Model-Final/runs_final_common_hu/binary_augmented_resnet18/best_model.pt",
+  "checkpoint_epoch": 16,
+  "decision_rule": "argmax over the two logits",
+  "preprocessing": {
+    "clip_min": -1000.0,
+    "clip_max": 400.0,
+    "normalization": "(x + 1000) / 1400",
+    "augmentation": false
+  }
+}

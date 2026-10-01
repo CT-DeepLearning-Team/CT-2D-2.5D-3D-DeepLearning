@@ -1,0 +1,4 @@
+true_label\predicted_label,benign,indeterminate,malignant
+benign,44,60,13
+indeterminate,50,110,27
+malignant,10,20,62
