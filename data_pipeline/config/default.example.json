@@ -1,0 +1,44 @@
+{
+  "raw_dicom_root": "/path/to/LIDC-IDRI",
+  "xml_root": "/path/to/tcia-lidc-xml",
+  "output_root": "processed",
+  "canonical_output_root": "processed/canonical",
+  "patient_ids": [],
+  "phase2_patient_ids": [],
+  "compute_file_hashes": false,
+  "dicom_workers": 8,
+  "phase3": {
+    "canonical_root": "processed/canonical",
+    "output_root": "/path/to/final_team_dataset",
+    "run_scope": "pilot",
+    "clustering": {
+      "max_centroid_distance_mm": 10,
+      "close_distance_mm": 4,
+      "min_bbox_iou": 0.02,
+      "same_session_duplicate_distance_mm": 0.5,
+      "same_session_duplicate_bbox_iou": 1.0,
+      "max_consensus_readers": 4,
+      "max_consensus_annotations": 4,
+      "max_cluster_diameter_mm": 12
+    },
+    "label_policy": {
+      "minimum_readers_for_binary": 2,
+      "strict_three_reader_minimum": 3,
+      "strong_disagreement_range": 2
+    },
+    "sampling": {
+      "target_spacing_mm": [1, 1, 1],
+      "crop_fov_mm": [104, 72, 80],
+      "context_margin_mm": 16,
+      "crop_round_mm": 8,
+      "image_fill_hu": -1024,
+      "minimum_crop_coverage": 1
+    },
+    "splits": {
+      "train": 0.70,
+      "validation": 0.15,
+      "test": 0.15,
+      "seed": 20250919
+    }
+  }
+}

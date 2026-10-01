@@ -157,3 +157,18 @@ See [3D_METHOD.md](docs/3D_METHOD.md) for the protocol and [3D_RESULTS.md](docs/
 for the complete results and interpretation. Reproducible figures are in
 [results/3d/figures](results/3d/figures/), and the machine-readable table is
 [results/3d/final_3d_metrics.csv](results/3d/final_3d_metrics.csv).
+
+## Dataset preparation
+
+The shared dataset is prepared by the source-only workflow in
+[`data_pipeline/`](data_pipeline/). It inventories DICOM and XML inputs,
+selects CT series, performs SOP/UID matching, reconstructs canonical HU
+volumes, creates reader masks and consensus nodules, applies technical QC, aggregates
+radiologist risk labels, and freezes patient-level splits. The external V2
+dataset is never committed to this repository. The labels are radiologist
+malignancy-risk assessments, not pathology-confirmed ground-truth diagnoses.
+
+Read the [dataset overview](docs/DATASET_PREPARATION.md),
+[cleaning pipeline](docs/CLEANING_PIPELINE.md),
+[label policy](docs/LABEL_POLICY.md), [fixed splits](docs/DATA_SPLITS.md), and
+[validation report](docs/DATA_VALIDATION.md) before running a model.
