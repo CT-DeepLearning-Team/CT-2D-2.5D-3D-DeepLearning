@@ -1,0 +1,35 @@
+{
+  "accuracy": 0.8708,
+  "balanced_accuracy": 0.8614,
+  "macro_f1": 0.8664,
+  "per_class": {
+    "benign": {
+      "precision": 0.8462,
+      "recall": 0.9402,
+      "f1": 0.8907,
+      "support": 117
+    },
+    "malignant": {
+      "precision": 0.9114,
+      "recall": 0.7826,
+      "f1": 0.8421,
+      "support": 92
+    }
+  },
+  "confusion_matrix": [
+    [110, 7],
+    [20, 72]
+  ],
+  "num_samples": 209,
+  "roc_auc_ovr": {
+    "macro_ovr_auc": 0.9215
+  },
+  "best_validation_macro_f1": 0.8583,
+  "checkpoint_epoch": 5,
+  "preprocessing": {
+    "clip_min": -1000.0,
+    "clip_max": 400.0,
+    "normalization": "(x + 1000) / 1400",
+    "augmentation": true
+  }
+}

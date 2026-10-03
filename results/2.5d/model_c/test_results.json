@@ -1,0 +1,42 @@
+{
+  "accuracy": 0.6869,
+  "balanced_accuracy": 0.6413,
+  "macro_f1": 0.6537,
+  "per_class": {
+    "benign": {
+      "precision": 0.8261,
+      "recall": 0.3248,
+      "f1": 0.4663,
+      "support": 117
+    },
+    "indeterminate": {
+      "precision": 0.6218,
+      "recall": 0.9144,
+      "f1": 0.7403,
+      "support": 187
+    },
+    "malignant": {
+      "precision": 0.84,
+      "recall": 0.6848,
+      "f1": 0.7545,
+      "support": 92
+    }
+  },
+  "confusion_matrix": [
+    [38, 75, 4],
+    [8, 171, 8],
+    [0, 29, 63]
+  ],
+  "num_samples": 396,
+  "roc_auc_ovr": {
+    "macro_ovr_auc": 0.7894
+  },
+  "best_validation_macro_f1": 0.5857,
+  "checkpoint_epoch": 12,
+  "preprocessing": {
+    "clip_min": -1000.0,
+    "clip_max": 400.0,
+    "normalization": "(x + 1000) / 1400",
+    "augmentation": true
+  }
+}
