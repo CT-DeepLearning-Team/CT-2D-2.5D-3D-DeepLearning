@@ -470,4 +470,290 @@ Possible explanations include:
 
 * the self-supervised objective may not have produced representations that were optimal for the small supervised classification task;
 * the supervised dataset may already provide sufficient signal for direct training;
-* the selec
+* the selected MoCo configuration may not have been optimal for this dataset;
+* the experiment represents a single run rather than a multi-seed evaluation.
+
+Therefore, based on this experiment, **MoCo pretraining did not provide an advantage over direct supervised training for the 2.5D model**.
+
+---
+
+# 12. Effect of Mild Augmentation
+
+The comparison between Model A and Model C provides the augmentation analysis.
+
+| 2.5D experiment                       | Model A: No augmentation | Model C: Mild augmentation |
+| ------------------------------------- | -----------------------: | -------------------------: |
+| Test Accuracy                         |                   0.6086 |                 **0.6869** |
+| Test Macro-F1                         |                   0.6075 |                 **0.6537** |
+| Validation Macro-F1                   |                   0.5883 |                     0.5857 |
+| Train Macro-F1 at selected checkpoint |                   0.8286 |                     0.6469 |
+| Train-validation gap                  |                  +0.2403 |                **+0.0612** |
+| Best epoch                            |                        9 |                         12 |
+
+Model C achieved a much better test Macro-F1 despite having a slightly lower best validation Macro-F1 than Model A.
+
+The most notable difference is the much smaller train-validation gap.
+
+This suggests that mild augmentation improved generalization and reduced overfitting in this run.
+
+---
+
+# 13. Binary Classification
+
+A separate binary experiment was conducted after removing indeterminate cases.
+
+The binary experiment used:
+
+```text
+Benign = 0
+Malignant = 1
+```
+
+Indeterminate cases were excluded using the provided binary train/validation/test CSV files.
+
+The same 2.5D representation and mild augmentation recipe were used.
+
+### Training configuration
+
+| Setting                 | Value                       |
+| ----------------------- | --------------------------- |
+| Architecture            | 5-channel ResNet-18         |
+| Classes                 | 2                           |
+| Batch size              | 8                           |
+| Optimizer               | AdamW                       |
+| Learning rate           | 0.001                       |
+| Weight decay            | 0.0001                      |
+| Maximum epochs          | 20                          |
+| Loss                    | Cross-Entropy               |
+| Augmentation            | Same mild recipe as Model C |
+| Checkpoint criterion    | Validation Macro-F1         |
+| Early stopping patience | 5                           |
+
+The best checkpoint occurred at:
+
+**Epoch 5**
+
+with:
+
+**Validation Macro-F1 = 0.8583**
+
+### Binary test results
+
+| Metric            |     Binary |
+| ----------------- | ---------: |
+| Accuracy          | **0.8708** |
+| Balanced Accuracy | **0.8614** |
+| Macro-F1          | **0.8664** |
+| ROC-AUC           | **0.9215** |
+
+### Per-class performance
+
+| Class     | Precision | Recall |     F1 |
+| --------- | --------: | -----: | -----: |
+| Benign    |    0.8462 | 0.9402 | 0.8907 |
+| Malignant |    0.9114 | 0.7826 | 0.8421 |
+
+### Confusion matrix
+
+```text
+                Predicted
+              B     M
+Actual B     110     7
+       M      20    72
+```
+
+![Binary Confusion Matrix](../results/2.5d/figures/Figure_5_Binary_confusion_matrix.png)
+
+### Training curves
+
+![Binary Loss](../results/2.5d/binary/Binary_Loss.png)
+
+![Binary Validation Macro-F1](../results/2.5d/binary/Binary_Validation_MacroF1.png)
+
+The binary results were substantially stronger than the 3-class results. However, this should not be interpreted as a direct comparison on exactly the same test samples because the binary experiment excludes indeterminate cases and therefore uses a different test set.
+
+---
+
+# 14. Effect of Removing Indeterminate Cases
+
+Removing the indeterminate category produced a much easier classification problem in this experiment.
+
+The binary model achieved:
+
+* Accuracy: **0.8708**
+* Balanced Accuracy: **0.8614**
+* Macro-F1: **0.8664**
+* ROC-AUC: **0.9215**
+
+In contrast, the best 3-class model, Model C, achieved:
+
+* Accuracy: **0.6869**
+* Balanced Accuracy: **0.6413**
+* Macro-F1: **0.6537**
+* ROC-AUC: **0.7894**
+
+The difference indicates that distinguishing benign from malignant nodules is easier when the intermediate/indeterminate cases are removed.
+
+However, the two experiments use different test populations, so the results should be presented as **separate experimental settings**, not as a perfectly controlled head-to-head comparison.
+
+---
+
+# 15. Confident-Label Subset Analysis
+
+An additional analysis was performed on the Model C test set using a stricter subset of samples considered more confident.
+
+The confident subset was defined using:
+
+* `midpoint_median_v2 == False`
+* `strict_3_reader_eligible == True`
+* `disagreement_flag == False`
+
+This produced:
+
+**23 confident test samples**
+
+The class distribution was:
+
+```text
+Benign: 16
+Indeterminate: 0
+Malignant: 7
+```
+
+Model C achieved:
+
+**Accuracy = 0.8696**
+
+ROC-AUC was **not reported for this subset** because there were no indeterminate samples and therefore the 3-class OVR AUC could not be meaningfully calculated for this subset.
+
+For the remaining **373 test samples**, Model C achieved:
+
+* Accuracy: **0.6756**
+* ROC-AUC: **0.7652**
+
+Because the confident subset is very small (`N=23`), its result should be interpreted cautiously and should not be treated as a robust estimate of generalization.
+
+---
+
+# 16. Overall Results Summary
+
+The main findings of the 2.5D experiments are:
+
+### 1. Mild augmentation performed best among the 3-class models
+
+Model C achieved the strongest test performance:
+
+```text
+Accuracy      = 0.6869
+Balanced Acc. = 0.6413
+Macro-F1      = 0.6537
+ROC-AUC       = 0.7894
+```
+
+### 2. Direct supervised training outperformed MoCo in this run
+
+Model B achieved lower test performance than Model A on all four main metrics.
+
+Therefore, MoCo pretraining did not provide a downstream classification benefit in this particular experiment.
+
+### 3. Mild augmentation reduced overfitting
+
+The observed train-validation Macro-F1 gap decreased from:
+
+```text
+Model A: 0.2403
+Model C: 0.0612
+```
+
+This supports the interpretation that the mild augmentation improved generalization.
+
+### 4. Binary classification was substantially easier
+
+After removing indeterminate cases, the binary model achieved:
+
+```text
+Accuracy      = 0.8708
+Balanced Acc. = 0.8614
+Macro-F1      = 0.8664
+ROC-AUC       = 0.9215
+```
+
+However, this binary result uses a different test population and therefore should not be interpreted as a direct replacement for the 3-class experiment.
+
+---
+
+# 17. Limitations
+
+Several limitations should be considered when interpreting these results.
+
+### Single-run evaluation
+
+All reported experiments are based on a single training run. Multiple random seeds were not used, so the results do not include mean ± standard deviation.
+
+### Radiologist-assessed labels
+
+The malignancy labels are based on radiologist assessments and should not be considered pathology-confirmed ground truth for every sample.
+
+### Limited supervised sample size
+
+The supervised 3-class dataset contains 2,654 eligible nodules, which is relatively small for training deep neural networks.
+
+### 2.5D representation
+
+The model uses only five axial slices around the nodule center. Therefore, it captures more spatial context than a single 2D slice but does not use the complete 3D volume.
+
+### Computational constraints
+
+The experiments were performed using a consumer GPU with limited VRAM. This constrained batch size and model/training choices.
+
+### Binary and 3-class populations differ
+
+The binary experiment excludes indeterminate cases and therefore uses a different test population. Binary and 3-class performance should not be interpreted as results from identical test samples.
+
+### Small confident-label subset
+
+The confident-label subset contained only 23 test samples. Its performance is therefore descriptive rather than statistically reliable.
+
+### No hyperparameter sweep
+
+The experiments used fixed training configurations rather than a large hyperparameter search.
+
+---
+
+# 18. Reproducibility
+
+The experiment scripts and result files are included in the project repository.
+
+The 2.5D results are organized under:
+
+```text
+results/2.5d/
+```
+
+The corresponding scripts are stored under:
+
+```text
+scripts/
+```
+
+The repository does not include the dataset or model checkpoints.
+
+The experiments used the finalized dataset split and the provided train/validation/test CSV files. No new data split was created during the experiments.
+
+---
+
+# 19. Conclusion
+
+This study evaluated a 2.5D representation in which five neighboring CT slices were treated as input channels to a modified ResNet-18.
+
+Among the three 3-class experiments, **mild training augmentation produced the strongest test performance**, reaching a Macro-F1 of **0.6537** and ROC-AUC of **0.7894**.
+
+The directly supervised baseline achieved a Macro-F1 of **0.6075**, while MoCo pretraining followed by fine-tuning achieved **0.5125**. Therefore, MoCo did not improve downstream classification performance in this single run.
+
+The augmentation experiment also showed a substantially smaller train-validation gap, suggesting improved generalization and reduced overfitting.
+
+When indeterminate cases were excluded, the binary model achieved considerably higher performance, with a Macro-F1 of **0.8664** and ROC-AUC of **0.9215**. This indicates that the intermediate/indeterminate category contributes substantially to the difficulty of the original 3-class task.
+
+Overall, the results suggest that **2.5D provides a useful compromise between single-slice 2D input and full 3D modeling**, while mild augmentation was more beneficial than MoCo pretraining for this particular 2.5D classification setting.
+
+These conclusions should be considered preliminary because the experiments are based on single runs and the labels represent radiologist-assessed malignancy rather than universally pathology-confirmed outcomes.
