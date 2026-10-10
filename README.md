@@ -1,123 +1,76 @@
-# From Slices to Volumes: Comparing 2D, 2.5D and 3D Deep Learning for Pulmonary Nodule Malignancy-Risk Classification
+# From Slices to Volumes
 
-Repository: `CT-2D-2.5D-3D-DeepLearning`
+## Comparing 2D, 2.5D and 3D Deep Learning for Pulmonary Nodule Malignancy-Risk Classification
 
-## Project overview
+This repository contains the completed team study of how CT spatial context,
+self-supervised pretraining, and training-time augmentation affect pulmonary
+nodule malignancy-risk classification. It includes the LIDC-IDRI preparation
+pipeline, model implementations, experiment reports, saved metrics, and figures
+for all three representations.
 
-Computed Tomography (CT) is volumetric data composed of consecutive image
-slices. Deep-learning models can use different amounts of that spatial context:
+**Main finding:** the augmented 2.5D model achieved the strongest held-out
+three-class performance in this study. Augmentation improved test Macro-F1 in
+all three tracks, while the tested MoCo configurations did not improve it over
+the supervised baselines. More spatial context alone did not guarantee better
+generalization.
 
-- **2D:** one CT slice.
-- **2.5D:** five neighboring CT slices used together.
-- **3D:** the full local nodule volume.
+> Labels are aggregated radiologist malignancy-risk assessments, not
+> pathology-confirmed cancer diagnoses. These experiments do not establish
+> clinical diagnostic performance.
 
-This project studies how representation dimensionality affects pulmonary nodule
-malignancy-risk classification. The goal is to compare these representations
-under a shared dataset, label policy, patient-level split, preprocessing
-contract, and evaluation philosophy. The project does not assume that a 3D
-model must perform better.
+## Project status
 
-## Research questions
+**Completed.** All three model tracks, the final 2.5D report, and the final
+2D vs 2.5D vs 3D comparison are complete. This repository contains the final
+source code, reports, metrics, and figures for the project.
 
-1. How does spatial context affect classification: 2D vs 2.5D vs 3D?
-2. Does MoCo self-supervised pretraining improve downstream 3-class
-   classification?
-3. Does training-time augmentation reduce overfitting and improve
-   generalization?
-4. How much does performance change when the indeterminate malignancy-risk
-   group is excluded?
+## Study overview
 
-## Team approaches
+| Track | Team member | Input representation | Architecture |
+|---|---|---|---|
+| 2D | Bahodir | One central CT slice | Single-channel ResNet-18 |
+| 2.5D | Fatima | Five neighboring CT slices | Five-channel ResNet-18 |
+| 3D | Zaineb | Full local CT volume | Lightweight 3D ResNet-18 |
 
-| Team member | Representation and model |
-|---|---|
-| Bahodir | 2D ResNet-18 using one central CT slice |
-| Fatima | 2.5D ResNet-18 using five neighboring slices |
-| Zaineb | 3D ResNet-18 using the local CT volume |
+The study addresses four questions:
 
-The architectures do not necessarily have equal capacity. The fair comparison
-comes from using the shared dataset, label definitions, patient assignments,
-preprocessing, and evaluation principles while varying the input
-representation.
+1. How does spatial context affect classification across 2D, 2.5D, and 3D?
+2. Does MoCo self-supervised pretraining improve downstream classification?
+3. Does training-only augmentation improve generalization?
+4. How does performance change when indeterminate-risk nodules are excluded?
 
-## Dataset: LIDC-IDRI
+The tracks share the final V2 cohort, label policy, fixed patient assignments,
+and HU window. They differ in architecture capacity, optimization settings,
+and representation-specific augmentation. The comparison therefore reflects
+these experimental implementations rather than isolating dimensionality alone.
 
-LIDC-IDRI contains thoracic CT scans, DICOM imaging data, XML radiologist
-annotations, multiple reader observations, and malignancy-risk scores. The
-labels used here are aggregated radiologist malignancy-risk assessments. They
-are **not pathology-confirmed cancer ground truth** and should not be
-interpreted as clinical diagnostic performance.
+## Dataset and evaluation
 
-The detailed dataset and quality-control documentation is in:
+The dataset is derived from **LIDC-IDRI** CT scans and radiologist annotations.
+The preparation workflow covers DICOM inventory, CT-series selection, XML
+parsing, SOP/UID matching, canonical CT reconstruction, reader masks, consensus
+nodules, isotropic resampling, crop generation, technical quality control,
+risk aggregation, and patient-level splitting.
 
-- [Dataset preparation](docs/DATASET_PREPARATION.md)
-- [Cleaning pipeline](docs/CLEANING_PIPELINE.md)
-- [Label policy](docs/LABEL_POLICY.md)
-- [Data validation](docs/DATA_VALIDATION.md)
-
-## Data preparation pipeline
-
-The reproducible source-only pipeline follows this sequence:
-
-```text
-Raw LIDC-IDRI
-→ DICOM inventory
-→ CT-series selection
-→ XML parsing
-→ SOP/UID matching
-→ canonical CT reconstruction
-→ reader annotations and masks
-→ consensus nodules
-→ isotropic resampling
-→ 3D crop generation
-→ technical QC
-→ malignancy-risk aggregation
-→ patient-level splitting
-→ final V2 dataset
-```
-
-```mermaid
-flowchart LR
-  A[Raw LIDC-IDRI] --> B[DICOM inventory]
-  B --> C[CT-series selection]
-  A --> D[XML parsing]
-  C --> E[SOP/UID matching]
-  D --> E
-  E --> F[Canonical CT reconstruction]
-  F --> G[Reader annotations and masks]
-  G --> H[Consensus nodules]
-  H --> I[Isotropic resampling and 3D crops]
-  I --> J[Technical QC]
-  J --> K[Risk aggregation]
-  K --> L[Patient-level splits]
-  L --> M[Final V2 dataset]
-```
-
-See [CLEANING_PIPELINE.md](docs/CLEANING_PIPELINE.md) for the full
-implementation-level description.
-
-## Verified dataset statistics
-
-| Stage or split | Nodules/records | Patients |
+| Dataset stage | Nodules | Patients |
 |---|---:|---:|
-| Patients processed | — | 1,010 |
-| DICOM records inventoried | 244,527 | — |
-| XML files parsed | 1,318 | — |
-| Valid CT series | 1,018 | — |
-| Consensus nodules | 7,385 | 990 represented |
+| Consensus nodules | 7,385 | 990 |
 | Rated consensus nodules | 2,672 | — |
 | Final supervised cohort | 2,654 | — |
 | SSL training pool | 5,133 | 692 |
 
-### Supervised classes
+The pipeline processed 1,010 patients, inventoried 244,527 DICOM records,
+parsed 1,318 XML files, and identified 1,018 valid CT series.
 
-| Class | Nodules |
-|---|---:|
-| Benign | 873 |
-| Indeterminate | 1,226 |
-| Malignant | 555 |
+### Labels
 
-### Fixed patient-level splits
+| Class | Aggregated median malignancy score | Nodules |
+|---|---|---:|
+| Benign | 1.0–2.0 | 873 |
+| Indeterminate | 2.5–3.0 | 1,226 |
+| Malignant | 3.5–5.0 | 555 |
+
+### Fixed splits
 
 | Split | Nodules | Patients |
 |---|---:|---:|
@@ -125,205 +78,192 @@ implementation-level description.
 | Validation | 382 | 134 |
 | Test | 396 | 134 |
 
-Patient overlap between the fixed splits is **0**. The SSL pool uses training
-patients only and contains no validation or test patients.
+Patient overlap between supervised splits is zero. The SSL pool contains only
+training patients and excludes validation and test patients. Checkpoints are
+selected by **validation Macro-F1**; the held-out test set is used for final
+evaluation.
 
-## Label policy
+The supplementary binary task excludes indeterminate nodules while retaining
+patient assignments: 1,000 training, 219 validation, and 209 test nodules.
 
-Labels are assigned from the aggregated median malignancy-risk score. Half
-values arise from aggregation across readers.
+### Input preprocessing
 
-| Median score | Class |
-|---|---|
-| 1.0–2.0 | Benign |
-| 2.5–3.0 | Indeterminate |
-| 3.5–5.0 | Malignant |
+Final crops have shape `(104, 72, 80)` in `(Z, Y, X)` order at 1 mm isotropic
+spacing. All tracks apply the same base intensity transformation:
 
-See [LABEL_POLICY.md](docs/LABEL_POLICY.md) for the full three-class and
-supplementary binary policies.
-
-## Shared preprocessing
-
-The final common intensity preprocessing for the 2D, 2.5D, and 3D comparison
-is:
-
-```text
-HU clipping:  [-1000, 400]
-Normalization: (x + 1000) / 1400
-Result:       [0, 1]
+```python
+x = np.clip(x, -1000, 400)
+x = (x + 1000) / 1400  # [0, 1]
 ```
 
-The final 3D crops have shape `(104, 72, 80)` in `(Z, Y, X)` order at 1 mm
-isotropic spacing. Masks are retained for audit and visualization but are not
-used as model inputs.
+The 2D track additionally uses training-split mean/std standardization. The
+2.5D and final 3D tracks use the normalized intensities without that additional
+step. Masks support preparation, centering, and audit; they are not input
+channels for the classifiers. See the individual reports for slice selection
+and other implementation details.
 
 ## Experimental design
 
-The primary task is three-class classification: benign, indeterminate, and
-malignant.
-
-| Experiment | Training design |
+| Experiment | Training recipe |
 |---|---|
-| **Model A** | Random initialization, supervised 3-class baseline, no training augmentation |
-| **Model B** | MoCo self-supervised pretraining followed by supervised 3-class fine-tuning; no supervised augmentation |
-| **Model C** | Random initialization, supervised 3-class training with training-only mild augmentation |
-| **Binary sensitivity** | Supervised benign-versus-malignant experiment using the Model C recipe; indeterminate nodules excluded |
+| Model A | Random initialization; supervised three-class baseline without augmentation |
+| Model B | MoCo pretraining, then supervised three-class fine-tuning without supervised augmentation |
+| Model C | Random initialization; supervised three-class training with mild training-only augmentation |
+| Binary sensitivity | Benign versus malignant classification using the Model C recipe |
 
-Model B uses the 5,133-sample training-patient SSL pool with malignancy labels
-ignored during pretraining. The binary experiment is supplementary; its
-two-class metrics are not directly equivalent to the primary three-class
-metrics.
+MoCo pretraining ignores malignancy labels. Validation and test inputs are
+never augmented.
 
-## Final 3D track
+## Final results
 
-The final 3D classifier is a lightweight 3D ResNet-18:
+### Three-class test Macro-F1
 
-- Input: `[B, 1, 104, 72, 80]`
-- Residual block layout: `[2, 2, 2, 2]`
-- Channels: `16 → 32 → 64 → 128`
-- Adaptive global-average pooling
-- Dropout: `0.20`
-- Parameters: `2,073,747` for the 3-class head and `2,073,618` for the binary head
-- Checkpoint selection: validation Macro-F1
+| Representation | Model A | Model B: MoCo | Model C: augmentation |
+|---|---:|---:|---:|
+| 2D | 0.6059 ± 0.024 | 0.5957 ± 0.009 | 0.6134 ± 0.007 |
+| 2.5D | 0.6075 | 0.5125 | **0.6537** |
+| 3D | 0.4928 | 0.4730 | 0.5403 |
 
-See [3D_METHOD.md](docs/3D_METHOD.md) for the frozen 3D protocol.
+The 2D values are means ± standard deviations across three seeds. The 2.5D
+results are single selected runs; the 3D results are frozen seed-42 runs.
+Small differences do not establish statistical significance.
 
-## Final 3D results
+![Three-class Macro-F1 across representations and experiments](results/team_comparison/figures/abc_macro_f1_grouped.png)
 
-Values are from the official saved final metrics table. Binary is a different
-two-class task and must not be compared directly with the three-class results.
+### Model C held-out performance
 
-| Experiment | Validation Macro-F1 | Test accuracy | Test balanced accuracy | Test Macro-F1 | ROC-AUC |
-|---|---:|---:|---:|---:|---:|
-| Model A | 0.5139 | 0.4949 | 0.4790 | 0.4928 | 0.6564 |
-| Model B — MoCo | 0.5127 | 0.4596 | 0.4683 | 0.4730 | 0.6692 |
-| Model C — augmentation | 0.5356 | 0.5455 | 0.5461 | 0.5403 | 0.7165 |
-| **Binary — two-class sensitivity analysis** | **0.7954** | **0.7608** | **0.7538** | **0.7554** | **0.8168** |
-
-The complete interpretation and machine-readable results are in
-[3D_RESULTS.md](docs/3D_RESULTS.md) and [results/3d/](results/3d/).
-
-### Current 3D findings
-
-- Model A showed substantial overfitting.
-- MoCo changed the learned representation but did not improve downstream test
-  Macro-F1 in this experiment.
-- Model C produced the strongest final three-class 3D result.
-- Training-only augmentation improved generalization relative to Model A.
-- Binary performance was substantially higher after excluding the indeterminate
-  group, supporting the interpretation that intermediate malignancy-risk
-  ambiguity contributes strongly to task difficulty. It does not show that
-  indeterminate cases are the sole cause.
-
-## Selected 3D figures
-
-<p align="center">
-  <img src="results/3d/figures/abc_test_metrics.png" alt="Model A, B, and C test metrics" width="700">
-</p>
-
-<p align="center">
-  <img src="results/3d/figures/train_validation_test_accuracy.png" alt="Train, validation, and test accuracy" width="700">
-</p>
-
-<p align="center">
-  <img src="results/3d/figures/validation_vs_test_macro_f1.png" alt="Validation versus test Macro-F1" width="700">
-</p>
-
-<p align="center">
-  <img src="results/3d/figures/three_class_vs_binary.png" alt="Three-class versus binary results" width="700">
-</p>
-
-The remaining learning curves and confusion-matrix figures are available in
-[results/3d/figures/](results/3d/figures/). Figures are generated by
-[`scripts/plot_3d_results.py`](scripts/plot_3d_results.py).
-
-## Team Comparison
-
-Final augmented Model C results across the three representations:
-
-| Representation | Test Accuracy | Balanced Accuracy | Macro-F1 | ROC-AUC |
+| Representation | Accuracy | Balanced accuracy | Macro-F1 | ROC-AUC |
 |---|---:|---:|---:|---:|
 | 2D | 0.6128 | 0.6110 | 0.6134 | 0.7595 |
-| 2.5D | 0.6869 | 0.6413 | 0.6537 | 0.7894 |
+| 2.5D | **0.6869** | **0.6413** | **0.6537** | **0.7894** |
 | 3D | 0.5455 | 0.5461 | 0.5403 | 0.7165 |
 
-See the [3D report](docs/3D_REPORT.md), the [final team comparison](docs/TEAM_COMPARISON.md),
-and the [comparison results](results/team_comparison/). The main comparison
-figure is generated at
-`results/team_comparison/figures/abc_macro_f1_grouped.png`.
+### Binary sensitivity analysis
 
-![Team three-class Macro-F1 comparison](results/team_comparison/figures/abc_macro_f1_grouped.png)
+| Representation | Accuracy | Balanced accuracy | Macro-F1 | ROC-AUC |
+|---|---:|---:|---:|---:|
+| 2D | 0.8293 | 0.8182 | 0.8227 | 0.8644 |
+| 2.5D | 0.8708 | 0.8614 | 0.8664 | 0.9215 |
+| 3D | 0.7608 | 0.7538 | 0.7554 | 0.8168 |
 
-## Repository structure
+Binary classification produced higher scores in every track. This is consistent
+with indeterminate-risk ambiguity contributing to the difficulty of the primary
+task. Binary and three-class scores are not directly equivalent: the binary
+task has fewer classes and a different cohort.
 
-```text
-CT-2D-2.5D-3D-DeepLearning/
-├── data/                 # External-data policy; no medical data committed
-├── data_pipeline/        # Reproducible LIDC-IDRI cleaning source/config
-├── docs/                 # Dataset, protocol, cleaning, and results docs
-├── results/
-│   ├── 2d/               # 2D results and analyses
-│   └── 3d/               # Final 3D results and figures
-├── src/
-│   ├── 2d/
-│   ├── 2p5d/
-│   ├── 3d/
-│   └── common/
-├── scripts/              # Training, evaluation, plotting, and utilities
-├── binary_experiment/    # Binary metadata and report
-├── requirements.txt
-└── README.md
+The full validation/test tables and interpretation are in the
+[final team comparison](docs/TEAM_COMPARISON.md). Exact saved values are in
+[final_team_metrics.csv](results/team_comparison/final_team_metrics.csv).
+
+## Findings and limitations
+
+- **2.5D Model C performed best in the final three-class comparison.** Five
+  neighboring slices provided a useful context/optimization compromise in this
+  study; this does not establish that 2.5D is universally preferable.
+- **Augmentation improved test Macro-F1 in all tracks.** The gains over Model A
+  were +0.0075 for 2D, +0.0462 for 2.5D, and +0.0475 for 3D. Improvement did not
+  eliminate overfitting, particularly in the 2D track.
+- **The tested MoCo recipes did not improve downstream test Macro-F1.** This
+  finding applies to the configurations evaluated here.
+- **The indeterminate class remained a major source of difficulty.** Removing
+  it simplified the task and increased performance across representations.
+
+The study uses a limited, imbalanced cohort and one fixed patient-level split.
+Model capacity, training settings, and augmentation differ across tracks, and
+multi-seed reporting is available only for 2D. Labels reflect radiologist risk
+ratings. These limits constrain causal, statistical, and clinical conclusions.
+
+## Reproducing the workflow
+
+### Install dependencies
+
+The pinned packages are listed in [requirements.txt](requirements.txt). The
+reported experiments used Python 3.13 on macOS with PyTorch MPS.
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
 ```
 
-## Documentation index
+For CPU-only Linux development, install the matching CPU builds first:
 
-### Dataset and cleaning
+```bash
+python -m pip install torch==2.14.0 torchvision==0.29.0 \
+  --index-url https://download.pytorch.org/whl/cpu
+python -m pip install -r requirements.txt
+```
+
+The source data-preparation pipeline has additional dependencies:
+
+```bash
+python -m pip install -r data_pipeline/requirements.txt
+```
+
+### Supply external data
+
+Medical data and model checkpoints are **not committed**. Obtain LIDC-IDRI
+separately and follow [data/README.md](data/README.md) for the processed V2
+layout. Keep datasets and local path configurations outside the source tree.
+
+The shared 2D configuration accepts `CT_DATA_ROOT` and `CT_BINARY_ROOT`.
+The final 3D configuration currently contains a machine-specific dataset path
+in [config.py](src/3d/final_common_hu/config.py); configure that path for your
+machine before running data-dependent commands. Review the 2.5D scripts for
+their dataset paths as well.
+
+For raw-data preparation, copy
+[data_pipeline/config/default.example.json](data_pipeline/config/default.example.json)
+to a local configuration, set the input/output paths, and follow the
+[data-pipeline instructions](data_pipeline/README.md).
+
+### Run experiments and inspect results
+
+Use the track reports for the exact final settings rather than assuming that
+script defaults reproduce the reported experiments:
+
+- [2D report](results/2d/REPORT.md) and [analysis](results/2d/ANALYSIS.md)
+- [2.5D report](docs/2P5D_REPORT.md)
+- [3D method](docs/3D_METHOD.md), [results](docs/3D_RESULTS.md), and [report](docs/3D_REPORT.md)
+- [Final cross-representation comparison](docs/TEAM_COMPARISON.md)
+
+Training and evaluation entry points are in `src/2d/`, `scripts/`, and
+`scripts/3d/`. The existing `scripts/3d/smoke_tests.py` requires the external
+dataset. Figure-generation scripts read committed result artifacts; they
+write into `results/`, and the team-comparison plotter assumes a macOS font
+path. Review output locations and platform assumptions before running them.
+
+## Repository guide
+
+```text
+├── data/                  # External-data policy
+├── data_pipeline/         # Cleaning source and example configuration
+├── docs/                  # Dataset, method, and final comparison reports
+├── src/
+│   ├── 2d/               # 2D model and training implementation
+│   ├── 2p5d/             # 2.5D track directory
+│   ├── 3d/               # Final 3D implementation
+│   └── common/           # Shared data, preprocessing, and evaluation utilities
+├── scripts/               # Training, evaluation, plotting, and utilities
+├── binary_experiment/     # Binary metadata and report
+├── results/
+│   ├── 2d/               # Three-seed results and analysis
+│   ├── 2.5d/             # Final 2.5D results
+│   ├── 3d/               # Final 3D results
+│   └── team_comparison/  # Combined metrics and figures
+└── requirements.txt       # Pinned experiment dependencies
+```
+
+## Dataset documentation
 
 - [Dataset preparation](docs/DATASET_PREPARATION.md)
 - [Cleaning pipeline](docs/CLEANING_PIPELINE.md)
 - [Label policy](docs/LABEL_POLICY.md)
 - [Fixed data splits](docs/DATA_SPLITS.md)
 - [Data validation](docs/DATA_VALIDATION.md)
-- [Original dataset overview](docs/dataset.md)
-
-### Methods and results
-
-- [3D method](docs/3D_METHOD.md)
-- [3D results](docs/3D_RESULTS.md)
 - [Preprocessing contract](docs/preprocessing_contract.md)
 - [Experimental protocol](docs/experimental_protocol.md)
-- [2D report](results/2d/REPORT.md)
-- [2D analysis](results/2d/ANALYSIS.md)
 
-## Reproducibility and data availability
-
-Medical data are not committed to GitHub. The repository does not redistribute
-DICOM files, raw XML dataset dumps, processed arrays, masks, NIfTI volumes, or
-model checkpoints. Source code, configuration examples, documentation, and
-small result artifacts are included.
-
-The LIDC-IDRI dataset must be obtained separately. See [data/README.md](data/README.md)
-for the expected external layout. Fixed patient-level splits are used, test
-data are not used for tuning or checkpoint selection, and seed information is
-documented in the corresponding model tracks. See the scripts and detailed
-method documents for reproducible commands rather than copying data into this
-repository.
-
-## Project status
-
-### Completed
-
-- Reproducible LIDC-IDRI cleaning pipeline source and documentation
-- V2 supervised and SSL dataset definition
-- Fixed patient-level train/validation/test split
-- 2D implementation and results
-- Final 3D implementation and results
-- Dataset validation and quality-control documentation
-
-### In progress / being integrated
-
-- Final 2.5D reporting
-- Final cross-representation 2D vs 2.5D vs 3D analysis
-
-The project reports malignancy-risk classification from radiologist
-assessments; it does not claim clinical diagnostic performance.
+The repository provides the completed experimental record for the team study.
+Raw scans, processed arrays, masks, and checkpoints must be supplied separately
+to rerun data-dependent experiments.
