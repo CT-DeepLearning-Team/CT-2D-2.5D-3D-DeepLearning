@@ -18,6 +18,12 @@ generalization.
 > pathology-confirmed cancer diagnoses. These experiments do not establish
 > clinical diagnostic performance.
 
+## Research paper
+
+[Read the manuscript (PDF)](paper/2D-2.5D-3D.pdf)
+
+**Authors:** Bahodir Nazarov, Zineb Gharib, and Fatima Zazoul.
+
 ## Project status
 
 **Completed.** All three model tracks, the final 2.5D report, and the final
@@ -239,6 +245,7 @@ path. Review output locations and platform assumptions before running them.
 ├── data/                  # External-data policy
 ├── data_pipeline/         # Cleaning source and example configuration
 ├── docs/                  # Dataset, method, and final comparison reports
+├── paper/                 # Research manuscript PDF
 ├── src/
 │   ├── 2d/               # 2D model and training implementation
 │   ├── 2p5d/             # 2.5D track directory
